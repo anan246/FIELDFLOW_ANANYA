@@ -9,11 +9,11 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-8">
-        <Link href="/">Home</Link>
-        <Link href="/services">Services</Link>
-        <Link href="/about">About</Link>
-        <Link href="/contact">Contact</Link>
-        <Link href="/login">Login</Link>
+        <Link className="text-gray-700"href="/">Home</Link>
+        <Link  className="text-gray-700" href="/services">Services</Link>
+        <Link className="text-gray-700" href="/about">About</Link>
+        <Link className="text-gray-700" href="/contact">Contact</Link>
+        <Link className="text-gray-700" href="/login">Login</Link>
         <Link href="/register"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg">
           Register
