@@ -45,7 +45,6 @@ export default function ContactPage() {
 
       </section>
 
-      {/* ================= CONTACT ================= */}
 
       <section className="max-w-7xl mx-auto px-6 py-24">
 
@@ -155,7 +154,6 @@ export default function ContactPage() {
 
           </div>
 
-          {/* RIGHT */}
 
           <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-10">
 
@@ -216,7 +214,6 @@ export default function ContactPage() {
       <section className="py-24 bg-white">
   <div className="max-w-7xl mx-auto px-6">
 
-    {/* Heading */}
 
     <div className="text-center mb-16">
 
@@ -236,11 +233,9 @@ export default function ContactPage() {
 
     </div>
 
-    {/* Process Cards */}
 
     <div className="grid md:grid-cols-2 lg:grid-cols-4 border border-gray-200 rounded-2xl overflow-hidden">
 
-      {/* Step 1 */}
 
       <div className="border-r border-gray-200">
 
@@ -267,7 +262,6 @@ export default function ContactPage() {
 
       </div>
 
-      {/* Step 2 */}
 
       <div className="border-r border-gray-200">
 
@@ -294,7 +288,6 @@ export default function ContactPage() {
 
       </div>
 
-      {/* Step 3 */}
 
       <div className="border-r border-gray-200">
 
@@ -321,7 +314,6 @@ export default function ContactPage() {
 
       </div>
 
-      {/* Step 4 */}
 
       <div>
 
@@ -352,7 +344,6 @@ export default function ContactPage() {
 
   </div>
 </section>
-            {/* ================= GOOGLE MAP ================= */}
 
       <section className="bg-[#FFF8F1] py-24">
 
