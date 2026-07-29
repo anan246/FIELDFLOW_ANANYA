@@ -1,26 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #F59E0B;
+  --primary-dark: #D97706;
+  --secondary: #2D2F39;
+  --background: #F8F9FB;
+  --card: #FFFFFF;
+  --text: #2D2F39;
+  --muted: #6B7280;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
+/* Global */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* Navbar */
+
+.navbar {
+  background: var(--secondary);
+  color: white;
+}
+
+
+/* Main Hero */
+
+.hero {
+  background: #F8F9FB;
+}
+
+
+/* Heading */
+
+.hero-title {
+  color: var(--secondary);
+  font-weight: 800;
+}
+
+
+/* Orange Highlight */
+
+.highlight {
+  color: var(--primary);
+}
+
+
+/* Buttons */
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+
+.btn-outline {
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  padding:14px 28px;
+  border-radius:8px;
+  font-weight:600;
+  transition:.3s;
+}
+
+.btn-outline:hover {
+  background:var(--primary);
+  color:white;
+}
+
+
+/* Cards */
+
+.service-card {
+  background:var(--card);
+  border-radius:16px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+  transition:.3s;
+}
+
+.service-card:hover {
+  transform:translateY(-5px);
+}
+
+
+/* Images */
+
+.hero-image {
+  border-radius:20px;
+  overflow:hidden;
 }
