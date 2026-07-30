@@ -1,6 +1,6 @@
 
 import Navbar from "@/components/layout/Navbar";
-import Footers from "@/components/layout/Footers";
+import Footers from "@/components/layout/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
