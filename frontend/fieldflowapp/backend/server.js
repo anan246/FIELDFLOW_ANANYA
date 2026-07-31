@@ -13,6 +13,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const dispatcherRoutes = require("./routes/dispatcherRoutes");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/dispatcher", dispatcherRoutes);
 
 // Test route
 app.get("/", (req, res) => {

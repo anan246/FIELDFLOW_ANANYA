@@ -17,13 +17,14 @@ import {
   Settings,
   Menu,
 } from "lucide-react";
+import { getTranslation } from "@/lib/translations";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/technicians", label: "Technicians", icon: Wrench },
-  { href: "/admin/bookings", label: "Bookings", icon: ClipboardList },
-  { href: "/admin/profile", label: "Profile", icon: User },
+  { href: "/admin", key: "dashboard", defaultLabel: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/users", key: "total_users", defaultLabel: "Users", icon: Users },
+  { href: "/admin/technicians", key: "technicians", defaultLabel: "Technicians", icon: Wrench },
+  { href: "/admin/bookings", key: "bookings", defaultLabel: "Bookings", icon: ClipboardList },
+  { href: "/admin/profile", key: "profile", defaultLabel: "Profile", icon: User },
 ];
 
 const MOCK_NOTIFICATIONS = [
@@ -37,6 +38,7 @@ export default function AdminLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState({});
+  const [lang, setLang] = useState("en");
   const [search, setSearch] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -49,6 +51,24 @@ export default function AdminLayout({ children }) {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
     if (u?.role !== "admin") router.replace("/register");
     setUser(u);
+  }, []);
+
+  useEffect(() => {
+    function loadLang() {
+      try {
+        setLang(localStorage.getItem("fieldflow_language") || "en");
+      } catch (_) {}
+    }
+    loadLang();
+
+    const handleLangChange = (e) => setLang(e.detail || "en");
+
+    window.addEventListener("fieldflow_language_change", handleLangChange);
+    window.addEventListener("storage", loadLang);
+    return () => {
+      window.removeEventListener("fieldflow_language_change", handleLangChange);
+      window.removeEventListener("storage", loadLang);
+    };
   }, []);
 
   useEffect(() => {
@@ -111,8 +131,9 @@ export default function AdminLayout({ children }) {
               Overview
             </p>
             <nav className="space-y-1.5">
-              {navItems.map(({ href, label, icon: Icon }) => {
+              {navItems.map(({ href, key, defaultLabel, icon: Icon }) => {
                 const active = pathname === href;
+                const translated = getTranslation(lang, key) || defaultLabel;
                 return (
                   <Link
                     key={href}
@@ -125,7 +146,7 @@ export default function AdminLayout({ children }) {
                     }`}
                   >
                     <Icon className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`} />
-                    <span>{label}</span>
+                    <span>{translated}</span>
                   </Link>
                 );
               })}
@@ -145,7 +166,7 @@ export default function AdminLayout({ children }) {
             }`}
           >
             <Settings className="w-5 h-5 text-slate-400" />
-            <span>Settings</span>
+            <span>{getTranslation(lang, "settings")}</span>
           </Link>
 
           <button
@@ -156,7 +177,7 @@ export default function AdminLayout({ children }) {
             <div className="w-6 h-6 rounded-full bg-slate-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
               {userInitial}
             </div>
-            <span>Logout</span>
+            <span>{getTranslation(lang, "logout")}</span>
           </button>
         </div>
       </aside>
@@ -220,7 +241,7 @@ export default function AdminLayout({ children }) {
               {showNotif && (
                 <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
                   <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
-                    <h4 className="font-bold text-slate-900 text-sm">Notifications</h4>
+                    <h4 className="font-bold text-slate-900 text-sm">{getTranslation(lang, "notifications")}</h4>
                     <button
                       onClick={markAllRead}
                       className="text-xs text-[#FF6000] font-semibold hover:underline"
@@ -286,20 +307,20 @@ export default function AdminLayout({ children }) {
                       href="/admin/profile"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
                     >
-                      <User className="w-4 h-4 text-slate-400" /> My Profile
+                      <User className="w-4 h-4 text-slate-400" /> {getTranslation(lang, "profile")}
                     </Link>
                     <Link
                       href="/admin/settings"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
                     >
-                      <Settings className="w-4 h-4 text-slate-400" /> Settings
+                      <Settings className="w-4 h-4 text-slate-400" /> {getTranslation(lang, "settings")}
                     </Link>
                     <hr className="my-1 border-slate-100" />
                     <button
                       onClick={logout}
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-red-500 hover:bg-red-50 transition font-medium w-full text-left"
                     >
-                      <LogOut className="w-4 h-4 text-red-400" /> Logout
+                      <LogOut className="w-4 h-4 text-red-400" /> {getTranslation(lang, "logout")}
                     </button>
                   </div>
                 </div>

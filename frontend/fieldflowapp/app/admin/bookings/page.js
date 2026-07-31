@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ClipboardList, Search, Filter, X, MapPin, Calendar, User, Wrench } from "lucide-react";
-import { ADMIN_API_BASE_URL } from "@/lib/apiConfig";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
-const API = ADMIN_API_BASE_URL;
+const API = API_BASE_URL;
 
 const STATUS_STEPS = ["pending", "assigned", "in_progress", "completed"];
 
@@ -141,30 +141,49 @@ export default function BookingsPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selected, setSelected] = useState(null);
+  const [error, setError] = useState("");
 
-  function fetchBookings() {
+  async function fetchBookings() {
     const token = localStorage.getItem("token");
     if (!token) {
-      setBookings(MOCK_BOOKINGS);
+      setError("Your admin session has expired. Please sign in again.");
       setLoading(false);
       return;
     }
-    fetch(`${API}/bookings`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => {
-        const ct = r.headers.get("content-type");
-        if (ct && ct.includes("application/json")) return r.json();
-        return null;
-      })
-      .then((data) => {
-        if (Array.isArray(data)) setBookings(data);
-        else setBookings(MOCK_BOOKINGS);
-      })
-      .catch(() => setBookings(MOCK_BOOKINGS))
-      .finally(() => setLoading(false));
+    try {
+      const response = await fetch(`${API}/bookings?_=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) throw new Error("The bookings API returned an unexpected response.");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to load bookings.");
+      setBookings((data.bookings || []).map((booking) => ({
+        ...booking,
+        service_category: booking.service_name || "Home Service",
+        technician_name: booking.technician_name || null,
+        city: booking.city || booking.address || "—",
+        status: (booking.status || "pending").toLowerCase().replaceAll(" ", "_"),
+        created_at: booking.created_at || booking.booking_date,
+      })));
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Unable to load live bookings.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchBookings();
+    const interval = setInterval(fetchBookings, 5000);
+    window.addEventListener("focus", fetchBookings);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", fetchBookings);
+    };
   }, []);
 
   async function updateStatus(id, status) {
@@ -173,11 +192,16 @@ export default function BookingsPage() {
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
       return;
     }
-    await fetch(`${API}/bookings/${id}/status`, {
+    const response = await fetch(`${API}/bookings/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ status }),
-    }).catch(() => {});
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      setError(data.error || "Unable to update the booking status.");
+      return;
+    }
     setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
   }
 
@@ -215,8 +239,9 @@ export default function BookingsPage() {
       <div className="space-y-6 max-w-7xl mx-auto">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900">Bookings</h2>
-          <p className="text-slate-500 text-xs sm:text-sm mt-0.5">Manage all service bookings across your platform</p>
+          <p className="text-slate-500 text-xs sm:text-sm mt-0.5">Live data refreshes every 5 seconds</p>
         </div>
+        {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
 
         {/* Stat Row */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

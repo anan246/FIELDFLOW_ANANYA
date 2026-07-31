@@ -108,6 +108,28 @@ export default function RegisterPage() {
       setSuccess(`Account created! Welcome, ${data.user.name} 🎉`);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.user.role === "technician") {
+        try {
+          const list = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
+          const exists = list.some((t) => t.id === data.user.id || t.name === data.user.name);
+          if (!exists) {
+            list.unshift({
+              id: data.user.id || Date.now(),
+              name: data.user.name,
+              email: data.user.email,
+              phone: data.user.phone,
+              category: data.user.category || form.category || "Electrician",
+              experience: data.user.experience || form.experience || 3,
+              working_area: data.user.workingArea || form.workingArea || "Bengaluru",
+              available_today: true,
+              status: "Available",
+              rating: 4.8,
+            });
+            localStorage.setItem("allRegisteredTechnicians", JSON.stringify(list));
+          }
+        } catch (_) {}
+      }
       setTimeout(() => {
         const role = data.user.role;
         if (role === "admin")           router.push("/admin");

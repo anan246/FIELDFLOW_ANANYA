@@ -90,19 +90,85 @@ export default function TechniciansPage() {
   const [filterAvail, setFilterAvail] = useState("all");
   const [selected, setSelected] = useState(null);
 
-  function fetchTechs() {
-    const token = localStorage.getItem("token");
-    fetch(`${API}/technicians`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((data) => {
-        setTechs(Array.isArray(data) ? data : MOCK_TECHS);
-      })
-      .catch(() => setTechs(MOCK_TECHS))
-      .finally(() => setLoading(false));
+  async function fetchTechs() {
+    try {
+      const token = localStorage.getItem("token");
+      let list = [];
+      try {
+        const res = await fetch(`${API_BASE_URL}/dispatcher/technicians`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) list = data;
+        }
+      } catch (_) {}
+
+      if (list.length === 0) {
+        try {
+          const res2 = await fetch(`${API_BASE_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (Array.isArray(data2) && data2.length > 0) list = data2;
+          }
+        } catch (_) {}
+      }
+
+      // Merge local storage registered technicians
+      try {
+        const localList = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
+        localList.forEach((t) => {
+          if (!list.some((existing) => existing.name?.toLowerCase() === t.name?.toLowerCase())) {
+            list.unshift(t);
+          }
+        });
+      } catch (_) {}
+
+      // Merge current active session technician if applicable
+      try {
+        const stored = JSON.parse(localStorage.getItem("user") || "{}");
+        if (stored.role === "technician" && stored.name) {
+          if (!list.some((t) => t.name?.toLowerCase() === stored.name?.toLowerCase())) {
+            list.unshift({
+              id: stored.id || 999,
+              name: stored.name,
+              email: stored.email,
+              phone: stored.phone || "9876543210",
+              category: stored.category || "General Technician",
+              experience: stored.experience || 3,
+              working_area: stored.working_area || stored.city || "Bengaluru",
+              available_today: true,
+              status: "Available",
+              rating: 4.8,
+              jobs_done: 12,
+            });
+          }
+        }
+      } catch (_) {}
+
+      MOCK_TECHS.forEach((m) => {
+        if (!list.some((t) => t.name?.toLowerCase() === m.name?.toLowerCase())) {
+          list.push(m);
+        }
+      });
+
+      setTechs(list);
+    } catch (err) {
+      console.error(err);
+      setTechs(MOCK_TECHS);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchTechs();
+    const interval = setInterval(fetchTechs, 3000);
+    window.addEventListener("storage", fetchTechs);
+    window.addEventListener("focus", fetchTechs);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", fetchTechs);
+      window.removeEventListener("focus", fetchTechs);
+    };
   }, []);
 
   async function toggleAvailability(id, current) {

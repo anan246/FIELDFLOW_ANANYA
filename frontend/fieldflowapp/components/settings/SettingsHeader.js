@@ -1,8 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Settings, User } from "lucide-react";
+import { getTranslation } from "@/lib/translations";
 
 export default function SettingsHeader({ user }) {
+  const [lang, setLang] = useState("en");
+
+  useEffect(() => {
+    function loadLang() {
+      try {
+        setLang(localStorage.getItem("fieldflow_language") || "en");
+      } catch (_) {}
+    }
+    loadLang();
+
+    window.addEventListener("fieldflow_language_change", (e) => setLang(e.detail || "en"));
+    window.addEventListener("storage", loadLang);
+    return () => {
+      window.removeEventListener("fieldflow_language_change", loadLang);
+      window.removeEventListener("storage", loadLang);
+    };
+  }, []);
+
   const userName = user?.name || "User";
   const userRole = user?.role || "Customer";
   const userEmail = user?.email || "user@fieldflow.in";
@@ -18,10 +38,10 @@ export default function SettingsHeader({ user }) {
         </div>
         <div>
           <h1 className="text-slate-900 font-extrabold text-2xl tracking-tight">
-            Account Settings
+            {getTranslation(lang, "account_settings")}
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold mt-0.5">
-            Manage Your {formattedRole} Preferences And Configurations
+            {getTranslation(lang, "manage_preferences")} ({formattedRole})
           </p>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 const serviceData = {
   electrician: {
@@ -164,7 +165,7 @@ export default function BookServicePage({ params }) {
        * POST /api/bookings
        */
       const response = await fetch(
-        "http://localhost:5000/api/bookings/create",
+        `${API_BASE_URL}/bookings/create`,
         {
           method: "POST",
           headers: {

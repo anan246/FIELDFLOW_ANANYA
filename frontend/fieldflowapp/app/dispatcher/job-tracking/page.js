@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dispatcher/DashboardLayout";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import {
   MapPin,
   Search,
@@ -23,9 +24,16 @@ export default function JobTrackingPage() {
   const [selectedJob, setSelectedJob] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     loadJobs();
+    const interval = setInterval(loadJobs, 5000);
+    window.addEventListener("focus", loadJobs);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", loadJobs);
+    };
   }, []);
 
   const loadJobs = async () => {
@@ -33,7 +41,7 @@ export default function JobTrackingPage() {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/api/dispatcher/job-tracking"
+        `${API_BASE_URL}/dispatcher/job-tracking?_=${Date.now()}`
       );
 
       if (!response.ok) {
@@ -42,14 +50,13 @@ export default function JobTrackingPage() {
 
       const data = await response.json();
 
-console.log(data);
-console.table(data);
-
-setJobs(data);
+      setJobs(Array.isArray(data) ? data : []);
+      setError("");
 
     } catch (err) {
 
       console.error(err);
+      setError("Unable to load live job assignments. Please try again.");
 
     } finally {
 
@@ -64,7 +71,7 @@ setJobs(data);
     try {
 
       const response = await fetch(
-        `http://localhost:5000/api/dispatcher/job-status/${bookingId}`,
+        `${API_BASE_URL}/dispatcher/job-status/${bookingId}`,
         {
           method: "PUT",
           headers: {
@@ -118,6 +125,9 @@ const started = jobs.filter(
 const completed = jobs.filter(
   (job) => job.booking_status === "Completed"
 ).length;
+const assignedTechnicians = new Set(
+  jobs.map((job) => job.technician_id).filter(Boolean)
+).size;
   const badgeColor = (status) => {
 
     switch (status) {
@@ -159,8 +169,8 @@ const completed = jobs.filter(
           </h1>
 
           <p className="mt-3 max-w-2xl leading-7 text-gray-300">
-            Track technician progress, monitor active jobs and update
-            service status in real time.
+            See every technician assignment, the customer they are serving,
+            service details, schedule and current status in real time.
           </p>
 
         </div>
@@ -168,7 +178,7 @@ const completed = jobs.filter(
         <div className="rounded-2xl border border-white/20 bg-white/10 px-8 py-6 backdrop-blur">
 
           <p className="text-gray-300">
-            Active Jobs
+            Assigned Jobs
           </p>
 
           <h2 className="mt-2 text-5xl font-bold text-orange-400">
@@ -193,9 +203,41 @@ const completed = jobs.filter(
 
       <>
 
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        )}
+
         {/* Statistics */}
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+
+          <div className="rounded-3xl bg-white p-6 shadow-md">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-gray-500">
+                  Technicians Assigned
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold text-[#08263B]">
+                  {assignedTechnicians}
+                </h2>
+
+              </div>
+
+              <div className="rounded-2xl bg-blue-100 p-4">
+
+                <UserCog className="text-blue-600" />
+
+              </div>
+
+            </div>
+
+          </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-md">
 

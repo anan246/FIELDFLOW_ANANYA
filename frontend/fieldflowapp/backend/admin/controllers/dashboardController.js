@@ -6,14 +6,22 @@ async function getDashboard(req, res) {
       pool.query("SELECT COUNT(*) FROM users WHERE role='customer'"),
       pool.query("SELECT COUNT(*) FROM users WHERE role='technician'"),
       pool.query("SELECT COUNT(*) FROM bookings"),
-      pool.query("SELECT COUNT(*) FROM bookings WHERE status='pending'"),
-      pool.query("SELECT COUNT(*) FROM bookings WHERE status='completed'"),
+      pool.query("SELECT COUNT(*) FROM bookings WHERE LOWER(status)='pending'"),
+      pool.query("SELECT COUNT(*) FROM bookings WHERE LOWER(status)='completed'"),
       pool.query(`
-        SELECT b.id, b.service_category, b.status, b.created_at,
+        SELECT b.id, s.name AS service_category, b.status, b.created_at,
           c.name AS customer_name, t.name AS technician_name
         FROM bookings b
-        LEFT JOIN users c ON b.customer_id = c.id
-        LEFT JOIN users t ON b.technician_id = t.id
+        LEFT JOIN users c ON b.user_id = c.id
+        LEFT JOIN services s ON b.service_id = s.id
+        LEFT JOIN LATERAL (
+          SELECT technician_id
+          FROM dispatcher_assignments
+          WHERE booking_id = b.id
+          ORDER BY assigned_at DESC
+          LIMIT 1
+        ) da ON true
+        LEFT JOIN users t ON da.technician_id = t.id
         ORDER BY b.created_at DESC LIMIT 8`),
     ]);
 
