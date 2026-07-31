@@ -2,22 +2,26 @@
 
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
-import Footers from "./Footers";
+import Footer from "./Footer";
 
 export default function GlobalShell({ children }) {
   const pathname = usePathname();
 
-  const isCustomerArea = pathname.startsWith("/customer");
+  const isDashboard =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/customer") ||
+    pathname?.startsWith("/dispatcher") ||
+    pathname?.startsWith("/technician");
 
   return (
     <>
-      {!isCustomerArea && <Navbar />}
+      {!isDashboard && <Navbar />}
 
       <main className="flex-grow">
         {children}
       </main>
 
-      {!isCustomerArea && <Footers />}
+      {!isDashboard && <Footer />}
     </>
   );
 }
