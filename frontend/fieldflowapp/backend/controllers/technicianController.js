@@ -1,9 +1,6 @@
 const Technician = require("../models/Technician");
 const Booking = require("../models/Booking");
-<<<<<<< HEAD
 const JobTracking = require("../models/JobTracking");
-=======
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
 
 async function getAllTechnicians(req, res) {
   try {
@@ -37,35 +34,9 @@ async function getDashboard(req, res) {
   try {
     const technicianId = req.user.id;
 
-<<<<<<< HEAD
-    const result = await Booking.findByTechnician(technicianId);
+    const result = await Booking.findByTechnician ? await Booking.findByTechnician(technicianId) : await Booking.findAll();
 
-    const myBookings = result.rows;
-
-    const dashboard = {
-      assignedJobs: myBookings.filter(
-        (b) => b.status === "assigned"
-      ).length,
-
-      inProgress: myBookings.filter(
-        (b) => b.status === "in_progress"
-      ).length,
-
-      completed: myBookings.filter(
-        (b) => b.status === "completed"
-      ).length,
-
-      todayJobs: myBookings.filter((b) => {
-        if (!b.scheduled_at) return false;
-
-        const today = new Date().toDateString();
-        return new Date(b.scheduled_at).toDateString() === today;
-=======
-    const bookings = await Booking.findAll();
-
-    const myBookings = bookings.rows.filter(
-      (job) => job.technician_id === technicianId
-    );
+    const myBookings = result.rows ? result.rows.filter((job) => job.technician_id === technicianId || job.assigned_technician_id === technicianId) : [];
 
     const today = new Date().toDateString();
 
@@ -73,17 +44,16 @@ async function getDashboard(req, res) {
       assignedJobs: myBookings.length,
 
       inProgress: myBookings.filter(
-        (job) => job.status === "In Progress"
+        (job) => job.status === "In Progress" || job.status === "in_progress"
       ).length,
 
       completed: myBookings.filter(
-        (job) => job.status === "Completed"
+        (job) => job.status === "Completed" || job.status === "completed"
       ).length,
 
       todayJobs: myBookings.filter((job) => {
         if (!job.scheduled_at) return false;
         return new Date(job.scheduled_at).toDateString() === today;
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
       }).length,
     };
 
@@ -93,7 +63,6 @@ async function getDashboard(req, res) {
   }
 }
 
-<<<<<<< HEAD
 async function getMyJobs(req, res) {
   try {
     const result = await Booking.findByTechnicianWithDetails(req.user.id);
@@ -152,6 +121,3 @@ async function updateAvailability(req, res) {
 }
 
 module.exports = { getAllTechnicians, getTechnicianById, toggleAvailability, getDashboard, getMyJobs, getJobById, updateJobStatus, updateAvailability };
-=======
-module.exports = { getAllTechnicians, getTechnicianById, toggleAvailability, getDashboard };
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
