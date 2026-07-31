@@ -1,4 +1,8 @@
-import GlobalShell from "@/components/layout/GlobalShell";
+"use client";
+
+import { usePathname } from "next/navigation";
+import Navbar from "@/components/layout/Navbar";
+import Footers from "@/components/layout/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -18,15 +22,29 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+
+  const isDashboard =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/customer") ||
+    pathname?.startsWith("/dispatcher") ||
+    pathname?.startsWith("/technician");
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <GlobalShell>
-          {children}
-        </GlobalShell>
+      <body className="min-h-full flex flex-col bg-[#F4F6FB]">
+        {!isDashboard && <Navbar />}
+
+        {isDashboard ? (
+          children
+        ) : (
+          <main className="flex-grow">{children}</main>
+        )}
+
+        {!isDashboard && <Footers />}
       </body>
     </html>
   );

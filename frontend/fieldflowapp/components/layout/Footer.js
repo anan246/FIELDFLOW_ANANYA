@@ -6,7 +6,6 @@ export default function Footer() {
 
       <div className="footer-container">
 
-        {/* Left Section */}
 
         <div className="footer-about">
 
@@ -44,7 +43,6 @@ export default function Footer() {
 
         </div>
 
-        {/* Quick Links */}
 
         <div className="footer-links">
 
@@ -57,7 +55,6 @@ export default function Footer() {
 
         </div>
 
-        {/* Services */}
 
         <div className="footer-links">
 
@@ -70,7 +67,6 @@ export default function Footer() {
 
         </div>
 
-        {/* Support */}
 
         <div className="footer-links">
 
@@ -83,7 +79,6 @@ export default function Footer() {
 
         </div>
 
-        {/* Company */}
 
         <div className="footer-links">
 

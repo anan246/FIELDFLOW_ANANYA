@@ -1,13 +1,43 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const pool = require("../config/db");
 
-router.get("/:id", async (req, res) => {
+const {
+  getAllUsers,
+  getUserById,
+  deleteUser,
+} = require("../controllers/userController");
+
+const {
+  protect,
+  adminOnly,
+} = require("../middleware/authMiddleware");
+
+
+/*
+ * ADMIN USER MANAGEMENT
+ */
+
+// Get all users
+router.get("/", protect, adminOnly, getAllUsers);
+
+// Get user by ID for admin
+router.get("/admin/:id", protect, adminOnly, getUserById);
+
+// Delete user
+router.delete("/:id", protect, adminOnly, deleteUser);
+
+
+/*
+ * CUSTOMER / USER PROFILE
+ */
+
+// Get user profile
+router.get("/profile/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         id,
         name,
         email,
@@ -37,5 +67,6 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;

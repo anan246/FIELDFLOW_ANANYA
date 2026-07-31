@@ -1,12 +1,38 @@
-const express = require("express");
+const router = require("express").Router();
 const pool = require("../config/db");
 
-const router = express.Router();
+const {
+  getAllBookings,
+  getBookingById,
+  updateBookingStatus,
+  assignTechnician,
+} = require("../controllers/bookingController");
+
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 /*
- * CREATE BOOKING
+ * ADMIN BOOKING MANAGEMENT
  */
-router.post("/", async (req, res) => {
+
+// Get all bookings
+router.get("/", protect, adminOnly, getAllBookings);
+
+// Get booking by ID
+router.get("/admin/:id", protect, adminOnly, getBookingById);
+
+// Update booking status
+router.patch("/:id/status", protect, adminOnly, updateBookingStatus);
+
+// Assign technician
+router.patch("/:id/assign", protect, adminOnly, assignTechnician);
+
+
+/*
+ * CUSTOMER BOOKING CREATION
+ */
+
+// Create booking
+router.post("/create", async (req, res) => {
   try {
     const {
       user_id,
@@ -69,11 +95,49 @@ router.post("/", async (req, res) => {
 
 
 /*
- * GET SINGLE BOOKING DETAILS
- *
- * IMPORTANT:
- * This must come BEFORE /:userId
+ * CUSTOMER BOOKINGS
  */
+
+// Get bookings for a customer
+router.get("/customer/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT
+        b.*,
+        s.name AS service_name,
+        s.price AS service_price,
+        c.name AS category_name
+      FROM bookings b
+      JOIN services s ON b.service_id = s.id
+      JOIN categories c ON s.category_id = c.id
+      WHERE b.user_id = $1
+      ORDER BY b.booking_date DESC, b.booking_time DESC
+      `,
+      [userId]
+    );
+
+    res.json({
+      bookings: result.rows,
+    });
+  } catch (error) {
+    console.error("Get customer bookings error:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch bookings",
+      error: error.message,
+    });
+  }
+});
+
+
+/*
+ * CUSTOMER BOOKING DETAILS
+ */
+
+// Get single booking details
 router.get("/details/:bookingId", async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -118,41 +182,9 @@ router.get("/details/:bookingId", async (req, res) => {
 
 
 /*
- * GET BOOKINGS FOR CUSTOMER
+ * CUSTOMER CANCEL BOOKING
  */
-router.get("/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
 
-    const result = await pool.query(
-      `
-      SELECT
-        b.*,
-        s.name AS service_name,
-        s.price AS service_price,
-        c.name AS category_name
-      FROM bookings b
-      JOIN services s ON b.service_id = s.id
-      JOIN categories c ON s.category_id = c.id
-      WHERE b.user_id = $1
-      ORDER BY b.booking_date DESC, b.booking_time DESC
-      `,
-      [userId]
-    );
-
-    res.json({
-      bookings: result.rows,
-    });
-  } catch (error) {
-    console.error("Get bookings error:", error);
-
-    res.status(500).json({
-      message: "Failed to fetch bookings",
-      error: error.message,
-    });
-  }
-});
-// Cancel a booking
 router.patch("/:bookingId/cancel", async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -186,5 +218,6 @@ router.patch("/:bookingId/cancel", async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;
