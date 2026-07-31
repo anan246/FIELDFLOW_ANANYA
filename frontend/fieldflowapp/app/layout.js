@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "FieldFlow",
-  description: "FieldFlow Home Services",
+  description: "Home repair and field service booking platform",
 };
 
 export default function RootLayout({ children }) {
