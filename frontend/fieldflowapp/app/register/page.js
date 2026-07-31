@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { User, Wrench, ClipboardList, ShieldCheck, Check, ArrowRight } from "lucide-react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 const roles = [
   { id: "customer",   label: "Customer",   icon: User,          desc: "Book home services" },
@@ -72,6 +73,7 @@ function AdminFields({ form, onChange }) {
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [role, setRole] = useState("");
   const formRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -96,7 +98,7 @@ export default function RegisterPage() {
     setSuccess("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, ...form }),

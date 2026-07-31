@@ -1,4 +1,4 @@
-/* ── Theme Variables ── */
+
 :root {
   --navy: #1a2332;
   --navy-light: #243044;
@@ -14,13 +14,13 @@
   --radius: 12px;
 }
 
-/* ── Page ── */
+
 .profile-page {
   background: var(--light-bg);
   min-height: 100vh;
 }
 
-/* ── Header ── */
+
 .profile-header {
   height: 420px;
   background: linear-gradient(rgba(26, 35, 50, 0.82), rgba(26, 35, 50, 0.82)),

@@ -1,5 +1,5 @@
 function validateRegister(req, res, next) {
-  const { name, email, phone, password, role } = req.body;
+  const { name, email, phone, password, role } = req.body || {};
 
   if (!name || !email || !phone || !password || !role)
     return res.status(400).json({ error: "Name, email, phone, password and role are required." });
