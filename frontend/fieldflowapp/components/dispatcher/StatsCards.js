@@ -12,28 +12,34 @@ import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function StatsCards() {
   const [stats, setStats] = useState({
-    totalBookings: 124,
-    pendingBookings: 18,
-    availableTechnicians: 12,
-    emergencyJobs: 5,
+    totalBookings: 0,
+    pendingBookings: 0,
+    availableTechnicians: 0,
+    emergencyJobs: 0,
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();
+    const interval = setInterval(fetchDashboardStats, 5000);
+    window.addEventListener("focus", fetchDashboardStats);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", fetchDashboardStats);
+    };
   }, []);
 
   const fetchDashboardStats = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/dispatcher/dashboard`);
+      const res = await fetch(`${API_BASE_URL}/dispatcher/dashboard?_=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setStats({
-          totalBookings: data.totalBookings || 124,
-          pendingBookings: data.pendingBookings || 18,
-          availableTechnicians: data.availableTechnicians || 12,
-          emergencyJobs: data.emergencyJobs || 5,
+          totalBookings: data.totalBookings || 0,
+          pendingBookings: data.pendingBookings || 0,
+          availableTechnicians: data.availableTechnicians || 0,
+          emergencyJobs: data.emergencyJobs || 0,
         });
       }
     } catch (error) {

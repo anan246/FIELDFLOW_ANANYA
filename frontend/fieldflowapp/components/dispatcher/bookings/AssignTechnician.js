@@ -56,7 +56,7 @@ export default function AssignTechnicianModal({
   booking,
   onAssign,
 }) {
-  const [technicians, setTechnicians] = useState(DEFAULT_REGISTERED_TECHS);
+  const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -67,57 +67,14 @@ export default function AssignTechnicianModal({
 
   const fetchTechnicians = async () => {
     try {
-      let list = [];
-      try {
-        const res = await fetch(`${API_BASE_URL}/dispatcher/technicians`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) list = data;
-        }
-      } catch (_) {}
-
-      // Merge local storage registered technicians
-      try {
-        const localList = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
-        localList.forEach((t) => {
-          if (!list.some((existing) => existing.name?.toLowerCase() === t.name?.toLowerCase())) {
-            list.unshift(t);
-          }
-        });
-      } catch (_) {}
-
-      // Merge current active session technician if applicable
-      try {
-        const stored = JSON.parse(localStorage.getItem("user") || "{}");
-        if (stored.role === "technician" && stored.name) {
-          if (!list.some((t) => t.name?.toLowerCase() === stored.name?.toLowerCase())) {
-            list.unshift({
-              id: stored.id || 999,
-              name: stored.name,
-              email: stored.email,
-              phone: stored.phone || "9876543210",
-              category: stored.category || "General Technician",
-              experience: stored.experience || 3,
-              working_area: stored.working_area || stored.city || "Bengaluru",
-              available_today: true,
-              status: "Available",
-              rating: 4.8,
-            });
-          }
-        }
-      } catch (_) {}
-
-      // Merge default fallback technicians so list is never empty
-      DEFAULT_REGISTERED_TECHS.forEach((def) => {
-        if (!list.some((t) => t.name?.toLowerCase() === def.name?.toLowerCase())) {
-          list.push(def);
-        }
-      });
-
-      setTechnicians(list);
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/dispatcher/technicians?_=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Unable to load technicians.");
+      const data = await res.json();
+      setTechnicians(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("fetchTechnicians error:", err);
-      setTechnicians(DEFAULT_REGISTERED_TECHS);
+      setTechnicians([]);
     } finally {
       setLoading(false);
     }

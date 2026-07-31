@@ -56,7 +56,7 @@ const INITIAL_DEMO_BOOKINGS = [
 
 export default function BookingTable() {
 
-  const [bookings, setBookings] = useState(INITIAL_DEMO_BOOKINGS);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -67,6 +67,12 @@ export default function BookingTable() {
 
   useEffect(() => {
     fetchBookings();
+    const interval = setInterval(fetchBookings, 5000);
+    window.addEventListener("focus", fetchBookings);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", fetchBookings);
+    };
   }, []);
 
   const fetchBookings = async () => {
@@ -89,26 +95,7 @@ export default function BookingTable() {
         priority: booking.priority || "Normal",
       }));
 
-      try {
-        const stored = JSON.parse(localStorage.getItem("user") || "{}");
-        if (stored.role === "customer" && stored.name) {
-          const exists = formattedBookings.some((b) => b.customer?.toLowerCase() === stored.name?.toLowerCase());
-          if (!exists) {
-            formattedBookings.unshift({
-              id: "BK1043",
-              customer: stored.name,
-              phone: stored.phone || "9876543210",
-              service: "Home Service",
-              location: stored.address ? `${stored.address}, ${stored.city || ""}` : (stored.city || "Bengaluru"),
-              technician: "Not Assigned",
-              status: "Pending",
-              priority: "Emergency",
-            });
-          }
-        }
-      } catch (_) {}
-
-      setBookings([...formattedBookings, ...INITIAL_DEMO_BOOKINGS]);
+      setBookings(formattedBookings);
     } catch (error) {
       console.error("BookingTable fetch error:", error);
     } finally {
@@ -164,27 +151,15 @@ export default function BookingTable() {
       );
 
       const result = await response.json();
-
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, technician: techName || "Assigned Technician", status: "Assigned" }
-            : b
-        )
-      );
+      if (!response.ok) throw new Error(result.message || "Unable to assign technician.");
 
       alert(`Technician ${techName || ""} assigned successfully!`);
       setAssignBooking(null);
       setIsAssignOpen(false);
+      fetchBookings();
     } catch (error) {
       console.error(error);
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, technician: techName || "Assigned Technician", status: "Assigned" }
-            : b
-        )
-      );
+      alert(error.message || "Unable to assign technician.");
       setAssignBooking(null);
     }
   };

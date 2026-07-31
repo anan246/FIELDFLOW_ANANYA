@@ -30,13 +30,19 @@ export default function DispatcherBoardPage() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 5000);
+    window.addEventListener("focus", loadData);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", loadData);
+    };
   }, []);
 
   const loadData = async () => {
     try {
       const [jobsRes, techRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/dispatcher/pending-bookings`),
-        fetch(`${API_BASE_URL}/dispatcher/technicians`),
+        fetch(`${API_BASE_URL}/dispatcher/pending-bookings?_=${Date.now()}`, { cache: "no-store" }),
+        fetch(`${API_BASE_URL}/dispatcher/technicians?_=${Date.now()}`, { cache: "no-store" }),
       ]);
 
       const jobsData = jobsRes.ok ? await jobsRes.json() : [];
@@ -85,7 +91,7 @@ export default function DispatcherBoardPage() {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/api/dispatcher/assign-technician",
+        `${API_BASE_URL}/dispatcher/assign-technician`,
         {
           method: "POST",
           headers: {

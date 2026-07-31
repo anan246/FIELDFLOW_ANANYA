@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Search, Calendar, Clock } from "lucide-react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function PendingBookings() {
   const [bookings, setBookings] = useState([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/dispatcher/pending-bookings")
+    const loadBookings = () => fetch(`${API_BASE_URL}/dispatcher/pending-bookings?_=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setBookings(data))
       .catch((err) => console.error(err));
+    loadBookings();
+    const interval = setInterval(loadBookings, 5000);
+    window.addEventListener("focus", loadBookings);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", loadBookings);
+    };
   }, []);
 
   const filteredBookings = bookings.filter(

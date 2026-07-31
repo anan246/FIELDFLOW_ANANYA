@@ -8,15 +8,23 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function TechnicianPanel() {
   const [technicians, setTechnicians] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/dispatcher/technicians")
+    const loadTechnicians = () => fetch(`${API_BASE_URL}/dispatcher/technicians?_=${Date.now()}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setTechnicians(data))
       .catch((err) => console.error(err));
+    loadTechnicians();
+    const interval = setInterval(loadTechnicians, 5000);
+    window.addEventListener("focus", loadTechnicians);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", loadTechnicians);
+    };
   }, []);
 
   return (

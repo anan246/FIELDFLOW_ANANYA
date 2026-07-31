@@ -14,7 +14,7 @@ const getDashboardStats = async (req, res) => {
     );
 
     const availableTechnicians = await pool.query(
-      "SELECT COUNT(*) FROM technicians WHERE status='Available'"
+      "SELECT COUNT(*) FROM users WHERE LOWER(role)='technician' AND available_today IS DISTINCT FROM false"
     );
 
     const emergencyJobs = await pool.query(
@@ -103,6 +103,7 @@ const getPendingBookings = async (req, res) => {
       FROM bookings b
       LEFT JOIN users u ON b.user_id = u.id
       LEFT JOIN services s ON b.service_id = s.id
+      WHERE LOWER(COALESCE(b.status, 'pending')) = 'pending'
       ORDER BY b.id DESC
     `);
 
@@ -127,6 +128,30 @@ const assignTechnician = async (req, res) => {
   } = req.body;
 
   try {
+
+    const existingAssignment = await pool.query(
+      "SELECT id FROM dispatcher_assignments WHERE booking_id=$1 LIMIT 1",
+      [booking_id]
+    );
+
+    if (existingAssignment.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "This booking already has a technician assigned."
+      });
+    }
+
+    const technician = await pool.query(
+      "SELECT id FROM users WHERE id=$1 AND LOWER(role)='technician' AND available_today IS DISTINCT FROM false",
+      [technician_id]
+    );
+
+    if (technician.rows.length === 0) {
+      return res.status(409).json({
+        success: false,
+        message: "This technician is no longer available."
+      });
+    }
 
     // Create Assignment
     await pool.query(
@@ -216,7 +241,7 @@ const getAssignedJobs = async (req, res) => {
 
       FROM dispatcher_assignments da
 
-      INNER JOIN technicians t
+      INNER JOIN users t
         ON da.technician_id = t.id
 
       INNER JOIN bookings b
