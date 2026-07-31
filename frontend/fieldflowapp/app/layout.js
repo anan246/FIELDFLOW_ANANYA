@@ -1,3 +1,5 @@
+import GlobalShell from "@/components/layout/GlobalShell";
+=======
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -16,6 +18,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata = {
+  title: "FieldFlow",
+  description: "Home repair and field service booking platform",
+};
+=======
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
@@ -25,12 +32,14 @@ export default function RootLayout({ children }) {
     pathname?.startsWith("/dispatcher") ||
     pathname?.startsWith("/technician");
 
+export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-[#F4F6FB]">
-        {!isDashboard && <Navbar />}
-        {isDashboard ? children : <main className="flex-grow">{children}</main>}
-        {!isDashboard && <Footers />}
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <GlobalShell>{children}</GlobalShell>
       </body>
     </html>
   );
