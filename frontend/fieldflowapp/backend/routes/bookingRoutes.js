@@ -26,7 +26,6 @@ router.patch("/:id/status", protect, adminOnly, updateBookingStatus);
 // Assign technician
 router.patch("/:id/assign", protect, adminOnly, assignTechnician);
 
-
 /*
  * CUSTOMER BOOKING CREATION
  */
@@ -93,7 +92,6 @@ router.post("/create", async (req, res) => {
   }
 });
 
-
 /*
  * CUSTOMER BOOKINGS
  */
@@ -131,7 +129,6 @@ router.get("/customer/:userId", async (req, res) => {
     });
   }
 });
-
 
 /*
  * CUSTOMER BOOKING DETAILS
@@ -180,7 +177,6 @@ router.get("/details/:bookingId", async (req, res) => {
   }
 });
 
-
 /*
  * CUSTOMER CANCEL BOOKING
  */
@@ -218,6 +214,5 @@ router.patch("/:bookingId/cancel", async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;
