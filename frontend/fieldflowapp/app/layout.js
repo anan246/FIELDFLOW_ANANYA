@@ -1,4 +1,5 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footers from "@/components/layout/Footer";
@@ -17,6 +18,7 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
+
   const isDashboard =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/customer") ||
