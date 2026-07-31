@@ -138,7 +138,8 @@ export default function BookServicePage({ params }) {
 
     try {
       /*
-       * Convert selected time slot to database time.
+       * Convert selected time slot into
+       * PostgreSQL TIME format.
        */
       const timeMap = {
         "9:00 AM – 11:00 AM": "09:00:00",
@@ -151,19 +152,19 @@ export default function BookServicePage({ params }) {
       const bookingTime = timeMap[time];
 
       /*
-       * IMPORTANT:
-       * service is now the actual database service ID:
+       * CREATE BOOKING IN BACKEND
        *
-       * 12 = Fan
-       * 13 = Switch
-       * 14 = Light
-       * 15 = Tap
-       * 16 = AC
-       * 17 = Furniture
-       * 18 = Painting
+       * IMPORTANT:
+       * Your backend route is:
+       *
+       * POST /api/bookings/create
+       *
+       * NOT:
+       *
+       * POST /api/bookings
        */
       const response = await fetch(
-        "http://localhost:5000/api/bookings",
+        "http://localhost:5000/api/bookings/create",
         {
           method: "POST",
           headers: {
@@ -180,14 +181,38 @@ export default function BookServicePage({ params }) {
         }
       );
 
-      const data = await response.json();
+      /*
+       * Read response safely.
+       * This prevents the confusing
+       * "Unexpected token <" error.
+       */
+      const contentType = response.headers.get("content-type");
+
+      let data;
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+
+        throw new Error(
+          `Backend returned a non-JSON response (${response.status}). ${text.slice(
+            0,
+            150
+          )}`
+        );
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Booking failed");
+        throw new Error(
+          data.message ||
+            data.error ||
+            "Booking failed"
+        );
       }
 
       /*
-       * Backend booking
+       * Booking successfully created in database.
        */
       const backendBooking = data.booking;
 
@@ -217,7 +242,8 @@ export default function BookServicePage({ params }) {
       );
 
       /*
-       * Save to local bookings list temporarily.
+       * Keep a local copy for the existing
+       * frontend bookings page.
        */
       const existingBookings = JSON.parse(
         localStorage.getItem("fieldflow_bookings") || "[]"
@@ -225,14 +251,20 @@ export default function BookServicePage({ params }) {
 
       localStorage.setItem(
         "fieldflow_bookings",
-        JSON.stringify([booking, ...existingBookings])
+        JSON.stringify([
+          booking,
+          ...existingBookings,
+        ])
       );
 
       /*
        * Create notification through backend.
+       *
+       * If notification API is unavailable,
+       * booking will still remain successful.
        */
       try {
-        await fetch(
+        const notificationResponse = await fetch(
           "http://localhost:5000/api/notifications",
           {
             method: "POST",
@@ -245,6 +277,13 @@ export default function BookServicePage({ params }) {
             }),
           }
         );
+
+        if (!notificationResponse.ok) {
+          console.log(
+            "Notification API returned:",
+            notificationResponse.status
+          );
+        }
       } catch (notificationError) {
         console.log(
           "Notification could not be created:",
@@ -260,11 +299,15 @@ export default function BookServicePage({ params }) {
     } catch (error) {
       console.error("Booking Error:", error);
 
-      alert(error.message || "Booking failed. Please try again.");
+      alert(
+        error.message ||
+          "Booking failed. Please try again."
+      );
     }
   }
 
-  const isQuoteBased = selectedService.priceType === "Quote";
+  const isQuoteBased =
+    selectedService.priceType === "Quote";
 
   return (
     <main className="min-h-screen bg-[#F4F6F9] px-4 py-8 sm:px-6 lg:px-10">

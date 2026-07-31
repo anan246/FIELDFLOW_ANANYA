@@ -33,8 +33,8 @@ export default function MyBookingsPage() {
         setError("");
 
         const response = await fetch(
-          `http://localhost:5000/api/bookings/${userId}`
-        );
+  `http://localhost:5000/api/bookings/customer/${userId}`
+);
 
         const data = await response.json();
 
