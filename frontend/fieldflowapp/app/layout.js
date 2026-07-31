@@ -17,14 +17,18 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  const hideLayout =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/customer") ||
+    pathname?.startsWith("/technician") ||
+    pathname?.startsWith("/dispatcher");
 
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        {!isAdmin && <Navbar />}
+        {!hideLayout && <Navbar />}
         <main className="flex-grow">{children}</main>
-        {!isAdmin && <Footers />}
+        {!hideLayout && <Footers />}
       </body>
     </html>
   );
