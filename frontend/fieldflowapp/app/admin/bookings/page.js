@@ -19,12 +19,12 @@ const STATUSES = ["pending", "assigned", "in_progress", "completed", "cancelled"
 
 const MOCK_BOOKINGS = [
   { id: 1001, customer_name: "Priya Sharma", service_category: "Electrician", technician_name: "Ravi Kumar", city: "Bangalore", status: "completed", created_at: "2025-06-01T10:00:00Z", address: "12 MG Road" },
-  { id: 1002, customer_name: "Ananya Lal", service_category: "Plumber", technician_name: null, city: "Mumbai", status: "pending", created_at: "2025-06-03T09:30:00Z", address: "45 Andheri West" },
+  { id: 1002, customer_name: "Popat Lal", service_category: "Plumber", technician_name: null, city: "Mumbai", status: "pending", created_at: "2025-06-03T09:30:00Z", address: "45 Andheri West" },
   { id: 1003, customer_name: "Meera Tiwari", service_category: "AC Technician", technician_name: "Amit Sharma", city: "Delhi", status: "in_progress", created_at: "2025-06-05T14:00:00Z", address: "7 Connaught Place" },
   { id: 1004, customer_name: "Rohit Verma", service_category: "Carpenter", technician_name: "Pradeep Singh", city: "Pune", status: "assigned", created_at: "2025-06-06T11:00:00Z", address: "22 FC Road" },
   { id: 1005, customer_name: "Sneha Patil", service_category: "Painter", technician_name: null, city: "Hyderabad", status: "cancelled", created_at: "2025-06-07T08:00:00Z", address: "9 Banjara Hills" },
   { id: 1006, customer_name: "Karan Mehta", service_category: "Electrician", technician_name: "Mohan Das", city: "Chennai", status: "completed", created_at: "2025-06-08T16:00:00Z", address: "3 Anna Nagar" },
-  { id: 1007, customer_name: "Divya Nair", service_category: "Plumber", technician_name: "Suresh Nair", city: "Bangalore", status: "pending", created_at: "2025-06-09T10:30:00Z", address: "88 Koramangala" },
+  { id: 1007, customer_name: "Jetalal", service_category: "Plumber", technician_name: "Suresh Nair", city: "Bangalore", status: "pending", created_at: "2025-06-09T10:30:00Z", address: "88 Koramangala" },
   { id: 1008, customer_name: "Arjun Reddy", service_category: "AC Technician", technician_name: "Amit Sharma", city: "Delhi", status: "assigned", created_at: "2025-06-10T13:00:00Z", address: "15 Dwarka" },
 ];
 
@@ -144,10 +144,20 @@ export default function BookingsPage() {
 
   function fetchBookings() {
     const token = localStorage.getItem("token");
+    if (!token) {
+      setBookings(MOCK_BOOKINGS);
+      setLoading(false);
+      return;
+    }
     fetch(`${API}/bookings`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
+      .then((r) => {
+        const ct = r.headers.get("content-type");
+        if (ct && ct.includes("application/json")) return r.json();
+        return null;
+      })
       .then((data) => {
-        setBookings(Array.isArray(data) ? data : MOCK_BOOKINGS);
+        if (Array.isArray(data)) setBookings(data);
+        else setBookings(MOCK_BOOKINGS);
       })
       .catch(() => setBookings(MOCK_BOOKINGS))
       .finally(() => setLoading(false));
@@ -159,6 +169,10 @@ export default function BookingsPage() {
 
   async function updateStatus(id, status) {
     const token = localStorage.getItem("token");
+    if (!token) {
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
+      return;
+    }
     await fetch(`${API}/bookings/${id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -264,48 +278,48 @@ export default function BookingsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <h3 className="font-bold text-slate-900 text-sm">All Bookings</h3>
+        <div className="bg-[#111F36] rounded-2xl shadow-md border border-slate-800 overflow-hidden text-white">
+          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+            <h3 className="font-bold text-white text-sm">All Bookings</h3>
             <span className="text-xs text-slate-400 font-medium">{filtered.length} results · click row for details</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-100 bg-[#F8FAFC]">
+                <tr className="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-800 bg-[#162942]">
                   {["#", "Customer", "Service", "Technician", "City", "Status", "Date"].map((h) => (
                     <th key={h} className="px-6 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800">
                 {filtered.map((b) => (
                   <tr
                     key={b.id}
                     onClick={() => setSelected(b)}
-                    className="hover:bg-amber-50/30 transition cursor-pointer"
+                    className="hover:bg-white/5 transition cursor-pointer"
                   >
                     <td className="px-6 py-4 text-slate-400 font-mono text-xs">{b.id}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#111F36] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[#FF6000] flex items-center justify-center text-white text-xs font-bold shrink-0">
                           {b.customer_name?.[0] || "?"}
                         </div>
-                        <span className="font-bold text-slate-900">{b.customer_name || "—"}</span>
+                        <span className="font-bold text-white">{b.customer_name || "—"}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{b.service_category}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">
-                      {b.technician_name || <span className="text-slate-400 italic">Unassigned</span>}
+                    <td className="px-6 py-4 text-slate-300 font-medium">{b.service_category}</td>
+                    <td className="px-6 py-4 text-slate-300 font-medium">
+                      {b.technician_name || <span className="text-slate-500 italic">Unassigned</span>}
                     </td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">
+                    <td className="px-6 py-4 text-slate-300 font-medium">
                       <div className="flex items-center gap-1.5">
                         <MapPin size={13} className="text-amber-500" />
                         {b.city || "—"}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${STATUS_COLORS[b.status] || "bg-slate-100 text-slate-500"}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${STATUS_COLORS[b.status] || "bg-slate-700 text-slate-300"}`}>
                         {b.status?.replace("_", " ")}
                       </span>
                     </td>
@@ -318,7 +332,7 @@ export default function BookingsPage() {
             </table>
             {!filtered.length && (
               <div className="text-center py-16">
-                <ClipboardList size={40} className="text-slate-300 mx-auto mb-3" />
+                <ClipboardList size={40} className="text-slate-500 mx-auto mb-3" />
                 <p className="text-slate-400 text-sm">No bookings match your filters.</p>
               </div>
             )}

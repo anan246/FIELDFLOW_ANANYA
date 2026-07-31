@@ -1,54 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function AccountInfo() {
-  const [user, setUser] = useState(null);
-
-  // Temporary customer ID
-  const userId = 1;
+  const [user, setUser] = useState({
+    id: 1,
+    role: "customer",
+    created_at: new Date().toISOString(),
+  });
 
   useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      if (stored.id) setUser((prev) => ({ ...prev, ...stored }));
+    } catch {}
+
     async function fetchUser() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/users/${userId}`
-        );
+        const response = await fetch(`${API_BASE_URL}/settings/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch user");
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          if (response.ok && data.data) {
+            setUser((prev) => ({ ...prev, ...data.data }));
+          }
         }
-
-        setUser(data.user);
-      } catch (error) {
-        console.error("Account info error:", error);
+      } catch {
+        // Fallback silently
       }
     }
 
     fetchUser();
   }, []);
 
-  if (!user) {
-    return (
-      <div className="section">
-        <section className="account-info">
-          <h2>Account Information</h2>
-          <p>Loading...</p>
-        </section>
-      </div>
-    );
-  }
-
-  const memberSince = new Date(user.created_at).toLocaleDateString(
-    "en-IN",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  );
+  const memberSince = user.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "January 2026";
 
   return (
     <div className="section">
@@ -58,12 +56,12 @@ export default function AccountInfo() {
         <div className="account-grid">
           <div className="info-card">
             <h4>User ID</h4>
-            <p>USR{String(user.id).padStart(3, "0")}</p>
+            <p>USR{String(user.id || 1).padStart(3, "0")}</p>
           </div>
 
           <div className="info-card">
             <h4>Role</h4>
-            <p>Customer</p>
+            <p className="capitalize">{user.role || "Customer"}</p>
           </div>
 
           <div className="info-card">
