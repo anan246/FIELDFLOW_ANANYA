@@ -30,10 +30,7 @@ export default function HeroBanner() {
             requests and keep FieldFlow operations running smoothly.
           </p>
 
-          <button className="mt-8 flex items-center gap-2 bg-orange-500 hover:bg-orange-600 transition px-6 py-3 rounded-xl font-semibold">
-            View Pending Jobs
-            <ArrowRight size={18} />
-          </button>
+          
 
         </div>
 

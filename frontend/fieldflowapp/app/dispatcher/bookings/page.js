@@ -18,8 +18,7 @@ export default function BookingsPage() {
         {/* Statistics */}
         <BookingStats />
 
-        {/* Search & Filters */}
-        <BookingFilters />
+        
 
         {/* Booking Table */}
         <BookingTable />

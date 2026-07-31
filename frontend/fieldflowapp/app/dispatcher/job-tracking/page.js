@@ -42,7 +42,10 @@ export default function JobTrackingPage() {
 
       const data = await response.json();
 
-      setJobs(data);
+console.log(data);
+console.table(data);
+
+setJobs(data);
 
     } catch (err) {
 
@@ -100,7 +103,7 @@ export default function JobTrackingPage() {
       .includes(search.toLowerCase())
   );
 
-  const assigned = jobs.filter(
+ const assigned = jobs.filter(
   (job) => job.booking_status === "Assigned"
 ).length;
 
@@ -429,14 +432,14 @@ const completed = jobs.filter(
 
                     <span
                       className={`rounded-full px-4 py-2 text-sm font-semibold ${badgeColor(
-                        job.status
+                        job.booking_status
                       )}`}
                     >
-                      {job.status}
+                      {job.booking_status}
                     </span>
 
                     <select
-                      value={job.status}
+                      value={job.booking_status}
                       onChange={(e) =>
                         updateStatus(
                           job.booking_id,

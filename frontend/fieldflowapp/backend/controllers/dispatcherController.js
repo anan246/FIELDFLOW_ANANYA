@@ -266,16 +266,81 @@ const getAssignedJobs = async (req, res) => {
 const createManualBooking = async (req, res) => {
 
   const {
-    user_id,
-    service_id,
+    customer_name,
+    phone,
+    email,
+    address,
+    city,
+    pincode,
+    service_name,
+    priority,
     booking_date,
-    booking_time,
-    address
+    booking_time
   } = req.body;
 
   try {
 
-    const result = await pool.query(
+    // 1. Find customer by phone
+    let user = await pool.query(
+      "SELECT id FROM users WHERE phone=$1",
+      [phone]
+    );
+
+    let user_id;
+
+    if (user.rows.length === 0) {
+
+      const newUser = await pool.query(
+        `
+        INSERT INTO users
+        (
+          name,
+          email,
+          phone,
+          role,
+          address,
+          city,
+          pincode
+        )
+        VALUES
+        ($1,$2,$3,'customer',$4,$5,$6)
+        RETURNING id
+        `,
+        [
+          customer_name,
+          email,
+          phone,
+          address,
+          city,
+          pincode
+        ]
+      );
+
+      user_id = newUser.rows[0].id;
+
+    } else {
+
+      user_id = user.rows[0].id;
+
+    }
+
+    // 2. Find service
+    const service = await pool.query(
+      "SELECT id FROM services WHERE name=$1",
+      [service_name]
+    );
+
+    if (service.rows.length === 0) {
+      return res.status(404).json({
+        success:false,
+        message:"Service not found"
+      });
+    }
+
+    const service_id = service.rows[0].id;
+
+    // 3. Create booking
+    const booking = await pool.query(
       `
       INSERT INTO bookings
       (
@@ -299,20 +364,40 @@ const createManualBooking = async (req, res) => {
       ]
     );
 
+    // 4. Emergency booking
+    if(priority === "Emergency"){
+
+      await pool.query(
+        `
+        INSERT INTO emergency_jobs
+        (
+          booking_id,
+          priority,
+          status,
+          created_at
+        )
+        VALUES
+        ($1,'Emergency','Pending',NOW())
+        `,
+        [booking.rows[0].id]
+      );
+
+    }
+
     res.status(201).json({
-      success: true,
-      message: "Manual booking created successfully",
-      booking: result.rows[0]
+      success:true,
+      message:"Booking Created Successfully",
+      booking:booking.rows[0]
     });
 
-  } catch (error) {
+  } catch(err){
 
-    console.error(error);
+    console.error(err);
 
     res.status(500).json({
-      success: false,
-      message: "Failed to create manual booking",
-      error: error.message
+      success:false,
+      message:"Server Error",
+      error:err.message
     });
 
   }

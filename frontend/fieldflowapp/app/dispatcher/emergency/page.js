@@ -543,13 +543,7 @@ export default function EmergencyQueuePage() {
               View
             </button>
 
-            <a
-              href={`tel:${job.phone}`}
-              className="flex items-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-white transition hover:bg-green-700"
-            >
-              <Phone size={18} />
-              Call
-            </a>
+          
 
             <button
               className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-white transition hover:bg-orange-600"
@@ -715,12 +709,7 @@ export default function EmergencyQueuePage() {
           Close
         </button>
 
-        <a
-          href={`tel:${selectedBooking.phone}`}
-          className="rounded-xl bg-green-600 px-6 py-3 font-medium text-white transition hover:bg-green-700"
-        >
-          Call Customer
-        </a>
+      
 
         <button
           className="rounded-xl bg-orange-500 px-6 py-3 font-medium text-white transition hover:bg-orange-600"

@@ -65,10 +65,7 @@ export default function ServiceDetailsCard({
               <option>Electrical Repair</option>
               <option>Plumbing</option>
               <option>AC Service</option>
-              <option>Cleaning</option>
-              <option>Painting</option>
-              <option>Carpentry</option>
-              <option>Appliance Repair</option>
+           
             </select>
 
           </div>

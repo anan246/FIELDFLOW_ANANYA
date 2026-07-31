@@ -51,7 +51,7 @@ const menuItems = [
     title: "Notifications",
     icon: Bell,
     href: "/dispatcher/notifications",
-    badge: 2, // Change dynamically later
+   
   },
   {
     title: "Profile",
@@ -102,8 +102,10 @@ export default function Sidebar() {
             const Icon = item.icon;
 
             const active =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/");
+  item.href === "/dispatcher"
+    ? pathname === "/dispatcher"
+    : pathname === item.href ||
+      pathname.startsWith(item.href + "/");
 
             return (
               <li key={item.title}>

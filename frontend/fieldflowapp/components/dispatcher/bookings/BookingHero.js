@@ -31,23 +31,7 @@ export default function BookingHero() {
             service from one place.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-
-            <button className="flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-semibold hover:bg-orange-600 transition">
-
-              <Plus size={20} />
-              Manual Booking
-
-            </button>
-
-            <button className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 hover:bg-white/20 transition">
-
-              <Clock size={20} />
-              Pending Jobs
-
-            </button>
-
-          </div>
+          
 
         </div>
 
