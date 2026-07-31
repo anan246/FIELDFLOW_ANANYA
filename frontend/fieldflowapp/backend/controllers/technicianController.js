@@ -1,4 +1,5 @@
 const Technician = require("../models/Technician");
+const Booking = require("../models/Booking");
 
 async function getAllTechnicians(req, res) {
   try {
@@ -28,4 +29,39 @@ async function toggleAvailability(req, res) {
   }
 }
 
-module.exports = { getAllTechnicians, getTechnicianById, toggleAvailability };
+async function getDashboard(req, res) {
+  try {
+    const technicianId = req.user.id;
+
+    const bookings = await Booking.findAll();
+
+    const myBookings = bookings.rows.filter(
+      (job) => job.technician_id === technicianId
+    );
+
+    const today = new Date().toDateString();
+
+    const dashboard = {
+      assignedJobs: myBookings.length,
+
+      inProgress: myBookings.filter(
+        (job) => job.status === "In Progress"
+      ).length,
+
+      completed: myBookings.filter(
+        (job) => job.status === "Completed"
+      ).length,
+
+      todayJobs: myBookings.filter((job) => {
+        if (!job.scheduled_at) return false;
+        return new Date(job.scheduled_at).toDateString() === today;
+      }).length,
+    };
+
+    res.json(dashboard);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { getAllTechnicians, getTechnicianById, toggleAvailability, getDashboard };
