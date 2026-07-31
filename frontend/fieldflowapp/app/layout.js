@@ -1,9 +1,6 @@
-"use client";
-import { usePathname } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Footers from "@/components/layout/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import LayoutWrapper from "@/components/layout/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,20 +12,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({ children }) {
-  const pathname = usePathname();
-  const isDashboard =
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/customer") ||
-    pathname?.startsWith("/dispatcher") ||
-    pathname?.startsWith("/technician");
+export const metadata = {
+  title: "FieldFlow",
+  description: "FieldFlow Home Services",
+};
 
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-[#F4F6FB]">
-        {!isDashboard && <Navbar />}
-        {isDashboard ? children : <main className="flex-grow">{children}</main>}
-        {!isDashboard && <Footers />}
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col bg-[#F4F6FB]`}
+      >
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

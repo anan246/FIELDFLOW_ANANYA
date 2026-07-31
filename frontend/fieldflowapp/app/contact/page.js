@@ -1,4 +1,7 @@
+
 "use client";
+
+import { useState } from "react";
 
 import {
   Phone,
@@ -12,18 +15,57 @@ import {
   Wrench,
   CheckCircle,
 } from "lucide-react";
+
 export default function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          subject,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Message sent successfully!");
+        setName("");
+        setEmail("");
+        setPhone("");
+        setSubject("");
+        setMessage("");
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Server Error");
+    }
+  };
+
   return (
     <main className="bg-white min-h-screen">
-
-     
+      {/* ================= HERO ================= */}
 
       <section className="bg-[#FFF8F1]">
-
         <div className="max-w-7xl mx-auto px-6 py-24">
-
           <div className="text-center">
-
             <span className="inline-flex px-5 py-2 rounded-full bg-orange-100 text-orange-600 font-semibold">
               CONTACT US
             </span>
@@ -38,56 +80,39 @@ export default function ContactPage() {
               electrician, plumber, AC technician, or carpenter? We'd love to
               hear from you.
             </p>
-
           </div>
-
         </div>
-
       </section>
 
+      {/* ================= CONTACT ================= */}
 
       <section className="max-w-7xl mx-auto px-6 py-24">
-
         <div className="grid lg:grid-cols-2 gap-12">
-
-         
+          {/* LEFT */}
 
           <div className="space-y-6">
-
             <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition">
-
               <div className="flex items-center gap-5">
-
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-                  <Phone className="text-orange-500" size={28}/>
+                  <Phone className="text-orange-500" size={28} />
                 </div>
 
                 <div>
-
                   <h3 className="text-2xl font-semibold text-[#08263B]">
                     Phone
                   </h3>
-
-                  <p className="text-gray-600 mt-1">
-                    +91 99999999
-                  </p>
-
+                  <p className="text-gray-600 mt-1">+91 99999999</p>
                 </div>
-
               </div>
-
             </div>
 
             <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition">
-
               <div className="flex items-center gap-5">
-
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-                  <Mail className="text-orange-500" size={28}/>
+                  <Mail className="text-orange-500" size={28} />
                 </div>
 
                 <div>
-
                   <h3 className="text-2xl font-semibold text-[#08263B]">
                     Email
                   </h3>
@@ -95,23 +120,17 @@ export default function ContactPage() {
                   <p className="text-gray-600 mt-1">
                     support@fieldflow.com
                   </p>
-
                 </div>
-
               </div>
-
             </div>
 
             <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition">
-
               <div className="flex items-center gap-5">
-
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-                  <MapPin className="text-orange-500" size={28}/>
+                  <MapPin className="text-orange-500" size={28} />
                 </div>
 
                 <div>
-
                   <h3 className="text-2xl font-semibold text-[#08263B]">
                     Address
                   </h3>
@@ -119,23 +138,17 @@ export default function ContactPage() {
                   <p className="text-gray-600 mt-1">
                     Mangaluru, Karnataka
                   </p>
-
                 </div>
-
               </div>
-
             </div>
 
             <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 hover:shadow-2xl transition">
-
               <div className="flex items-center gap-5">
-
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-                  <Clock className="text-orange-500" size={28}/>
+                  <Clock className="text-orange-500" size={28} />
                 </div>
 
                 <div>
-
                   <h3 className="text-2xl font-semibold text-[#08263B]">
                     Working Hours
                   </h3>
@@ -145,18 +158,14 @@ export default function ContactPage() {
                     <br />
                     9:00 AM - 5:00 PM
                   </p>
-
                 </div>
-
               </div>
-
             </div>
-
           </div>
 
+          {/* RIGHT */}
 
           <div className="bg-white rounded-3xl shadow-xl border border-gray-200 p-10">
-
             <h2 className="text-4xl font-bold text-[#08263B]">
               Send a Message
             </h2>
@@ -165,192 +174,194 @@ export default function ContactPage() {
               Fill in your details and our team will contact you shortly.
             </p>
 
-            <form className="space-y-5">
-
+            <form onSubmit={handleSubmit} className="space-y-5">
               <input
                 type="text"
                 placeholder="Full Name"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 placeholder:text-gray-500 focus:ring-2 "
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-400 outline-none"
               />
 
               <input
                 type="email"
                 placeholder="Email Address"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl placeholder:text-gray-500 px-5 py-4 focus:ring-2 focus:ring-orange-400 outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-400 outline-none"
               />
 
               <input
                 type="tel"
                 placeholder="Phone Number"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl placeholder:text-gray-500 px-5 py-4 focus:ring-2 focus:ring-orange-400 outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-400 outline-none"
               />
 
               <input
                 type="text"
                 placeholder="Subject"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl placeholder:text-gray-500  px-5 py-4 focus:ring-2 focus:ring-orange-400 outline-none"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-400 outline-none"
               />
 
               <textarea
                 rows={6}
                 placeholder="Write your message..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-300 rounded-xl px-5 py-4 resize-none placeholder:text-gray-500 focus:ring-2 focus:ring-orange-400 outline-none"
-              ></textarea>
+              />
 
               <button
+                type="submit"
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-full font-semibold flex items-center justify-center gap-3 transition"
               >
-                <Send size={20}/>
+                <Send size={20} />
                 Send Message
               </button>
-
             </form>
-
           </div>
-
         </div>
-
       </section>
+            {/* ================= OUR PROCESS ================= */}
+
       <section className="py-24 bg-white">
-  <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
 
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-300 text-[#08263B]">
+              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+              Our Process
+            </span>
 
-    <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-[#08263B] mt-6">
+              Simple Steps To Get Your Home Services Done
+            </h2>
 
-      <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-300 text-[#08263B]">
-        <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-        Our Process
-      </span>
-
-      <h2 className="text-5xl font-bold text-[#08263B] mt-6">
-        Simple Steps To Get Your Home Services Done
-      </h2>
-
-      <p className="text-gray-600 mt-5 max-w-3xl mx-auto">
-        We make booking home services quick, transparent, and hassle-free.
-        Follow these simple steps and let our trusted professionals handle the rest.
-      </p>
-
-    </div>
-
-
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 border border-gray-200 rounded-2xl overflow-hidden">
-
-
-      <div className="border-r border-gray-200">
-
-        <div className="bg-[#252932] text-center py-6">
-          <h1 className="text-7xl font-bold text-white opacity-90">01</h1>
-        </div>
-
-        <div className="bg-white text-center p-8">
-
-          <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
-            <CalendarCheck className="text-white" size={28}/>
+            <p className="text-gray-600 mt-5 max-w-3xl mx-auto">
+              We make booking home services quick, transparent, and
+              hassle-free. Follow these simple steps and let our trusted
+              professionals handle the rest.
+            </p>
           </div>
 
-          <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
-            Book Service
-          </h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 border border-gray-200 rounded-2xl overflow-hidden">
 
-          <p className="text-gray-600 mt-4">
-            Choose the service you need, select your preferred date and time,
-            and confirm your booking in just a few clicks.
-          </p>
+            {/* Step 1 */}
 
-        </div>
+            <div className="border-r border-gray-200">
+              <div className="bg-[#252932] text-center py-6">
+                <h1 className="text-7xl font-bold text-white opacity-90">
+                  01
+                </h1>
+              </div>
 
-      </div>
+              <div className="bg-white text-center p-8">
+                <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
+                  <CalendarCheck className="text-white" size={28} />
+                </div>
 
+                <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
+                  Book Service
+                </h3>
 
-      <div className="border-r border-gray-200">
+                <p className="text-gray-600 mt-4">
+                  Choose the service you need, select your preferred date and
+                  time, and confirm your booking in just a few clicks.
+                </p>
+              </div>
+            </div>
 
-        <div className="bg-[#252932] text-center py-6">
-          <h1 className="text-7xl font-bold text-white opacity-90">02</h1>
-        </div>
+            {/* Step 2 */}
 
-        <div className="bg-white text-center p-8">
+            <div className="border-r border-gray-200">
+              <div className="bg-[#252932] text-center py-6">
+                <h1 className="text-7xl font-bold text-white opacity-90">
+                  02
+                </h1>
+              </div>
 
-          <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
-            <Search className="text-white" size={28}/>
+              <div className="bg-white text-center p-8">
+                <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
+                  <Search className="text-white" size={28} />
+                </div>
+
+                <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
+                  Inspection
+                </h3>
+
+                <p className="text-gray-600 mt-4">
+                  Our certified technician visits your location to inspect the
+                  issue and determine the best solution.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+
+            <div className="border-r border-gray-200">
+              <div className="bg-[#252932] text-center py-6">
+                <h1 className="text-7xl font-bold text-white opacity-90">
+                  03
+                </h1>
+              </div>
+
+              <div className="bg-white text-center p-8">
+                <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
+                  <Wrench className="text-white" size={28} />
+                </div>
+
+                <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
+                  Repair
+                </h3>
+
+                <p className="text-gray-600 mt-4">
+                  Our experts perform the repair using professional tools and
+                  genuine spare parts whenever required.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+
+            <div>
+              <div className="bg-[#252932] text-center py-6">
+                <h1 className="text-7xl font-bold text-white opacity-90">
+                  04
+                </h1>
+              </div>
+
+              <div className="bg-white text-center p-8">
+                <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
+                  <CheckCircle className="text-white" size={28} />
+                </div>
+
+                <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
+                  Testing & Delivery
+                </h3>
+
+                <p className="text-gray-600 mt-4">
+                  We thoroughly test the repaired appliance and ensure
+                  everything is working perfectly before completing the service.
+                </p>
+              </div>
+            </div>
+
           </div>
 
-          <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
-            Inspection
-          </h3>
-
-          <p className="text-gray-600 mt-4">
-            Our certified technician visits your location to inspect the issue
-            and determine the best solution.
-          </p>
-
         </div>
+      </section>
 
-      </div>
-
-
-      <div className="border-r border-gray-200">
-
-        <div className="bg-[#252932] text-center py-6">
-          <h1 className="text-7xl font-bold text-white opacity-90">03</h1>
-        </div>
-
-        <div className="bg-white text-center p-8">
-
-          <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
-            <Wrench className="text-white" size={28}/>
-          </div>
-
-          <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
-            Repair
-          </h3>
-
-          <p className="text-gray-600 mt-4">
-            Our experts perform the repair using professional tools and genuine
-            spare parts whenever required.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <div>
-
-        <div className="bg-[#252932] text-center py-6">
-          <h1 className="text-7xl font-bold text-white opacity-90">04</h1>
-        </div>
-
-        <div className="bg-white text-center p-8">
-
-          <div className="w-14 h-14 bg-orange-500 rounded-xl flex items-center justify-center mx-auto">
-            <CheckCircle className="text-white" size={28}/>
-          </div>
-
-          <h3 className="text-2xl font-semibold text-[#08263B] mt-6">
-            Testing & Delivery
-          </h3>
-
-          <p className="text-gray-600 mt-4">
-            We thoroughly test the repaired appliance and ensure everything is
-            working perfectly before completing the service.
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-</section>
+      {/* ================= GOOGLE MAP ================= */}
+            {/* ================= GOOGLE MAP ================= */}
 
       <section className="bg-[#FFF8F1] py-24">
-
         <div className="max-w-7xl mx-auto px-6">
 
           <div className="text-center mb-14">
-
             <span className="text-orange-500 font-semibold uppercase tracking-widest">
               Find Us
             </span>
@@ -363,30 +374,26 @@ export default function ContactPage() {
               Our office is always open during working hours. Feel free to visit
               us or locate us on the map below.
             </p>
-
           </div>
 
           <div className="bg-white rounded-[30px] shadow-xl border border-gray-200 overflow-hidden">
-
             <iframe
               title="FieldFlow Location"
               src="https://www.google.com/maps?q=Bengaluru&output=embed"
               className="w-full h-[450px]"
               loading="lazy"
-            ></iframe>
-
+            />
           </div>
 
         </div>
-
       </section>
 
-      
-      <section className="py-24">
+      {/* ================= CALL TO ACTION ================= */}
 
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-6">
 
-          <div className=" rounded-[32px] p-14 text-center">
+          <div className="rounded-[32px] p-14 text-center">
 
             <span className="text-orange-400 font-semibold uppercase tracking-widest">
               Need Immediate Help?
@@ -402,9 +409,7 @@ export default function ContactPage() {
               and affordable services.
             </p>
 
-            <button
-              className="mt-10 bg-orange-500 hover:bg-orange-600 transition duration-300 text-white px-10 py-4 rounded-full font-semibold inline-flex items-center gap-3"
-            >
+            <button className="mt-10 bg-orange-500 hover:bg-orange-600 transition duration-300 text-white px-10 py-4 rounded-full font-semibold inline-flex items-center gap-3">
               Book Service
               <ArrowRight size={20} />
             </button>
@@ -412,10 +417,7 @@ export default function ContactPage() {
           </div>
 
         </div>
-
       </section>
-
-     
 
     </main>
   );

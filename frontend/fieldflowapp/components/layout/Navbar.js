@@ -37,7 +37,7 @@ export default function Navbar() {
 
           <Link
             href="/register"
-            className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg font-medium transition-all"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
           >
             Register
           </Link>
@@ -50,7 +50,6 @@ export default function Navbar() {
         >
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
-
       </div>
 
       {/* Mobile Menu */}
