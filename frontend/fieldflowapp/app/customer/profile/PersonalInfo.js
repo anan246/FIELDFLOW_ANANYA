@@ -1,30 +1,47 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function PersonalInfo() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({
+    name: "Customer User",
+    email: "customer@fieldflow.in",
+    phone: "9876543210",
+    address: "Bangalore, India",
+  });
   const [loading, setLoading] = useState(true);
 
-  // Temporary customer ID
-  const userId = 1;
-
   useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "{}");
+      if (stored.name || stored.email) {
+        setUser((prev) => ({ ...prev, ...stored }));
+      }
+    } catch {}
+
     async function fetchUser() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/users/${userId}`
-        );
+        const response = await fetch(`${API_BASE_URL}/settings/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch user");
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          if (response.ok && data.data) {
+            setUser(data.data);
+            localStorage.setItem("user", JSON.stringify(data.data));
+          }
         }
-
-        setUser(data.user);
-      } catch (error) {
-        console.error("Profile fetch error:", error);
+      } catch {
+        // Fallback silently to localStorage user
       } finally {
         setLoading(false);
       }
@@ -33,21 +50,11 @@ export default function PersonalInfo() {
     fetchUser();
   }, []);
 
-  if (loading) {
+  if (loading && !user.name) {
     return (
       <section className="personal-info section">
         <div className="profile-right">
           <h2>Loading profile...</h2>
-        </div>
-      </section>
-    );
-  }
-
-  if (!user) {
-    return (
-      <section className="personal-info section">
-        <div className="profile-right">
-          <h2>Unable to load profile</h2>
         </div>
       </section>
     );
@@ -58,13 +65,13 @@ export default function PersonalInfo() {
       <div className="profile-left">
         <div className="profile-card">
           <div className="profile-image-placeholder">
-            {user.name?.charAt(0).toUpperCase()}
+            {user.name?.charAt(0).toUpperCase() || "C"}
           </div>
 
           <h2>{user.name}</h2>
 
           <span className="role-badge">
-            Customer
+            {user.role || "Customer"}
           </span>
 
           <button type="button" className="edit-photo-btn">
@@ -76,7 +83,7 @@ export default function PersonalInfo() {
       <div className="profile-right">
         <h2>Personal Information</h2>
 
-        <form>
+        <form onSubmit={(e) => e.preventDefault()}>
           <div className="form-row">
             <div className="form-group">
               <label>Full Name</label>
@@ -108,10 +115,10 @@ export default function PersonalInfo() {
             </div>
 
             <div className="form-group">
-              <label>Address</label>
+              <label>Address / City</label>
               <input
                 type="text"
-                value={user.address || ""}
+                value={user.city || user.address || ""}
                 readOnly
               />
             </div>

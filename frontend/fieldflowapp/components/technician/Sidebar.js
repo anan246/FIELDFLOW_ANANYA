@@ -50,28 +50,29 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 min-h-screen bg-[#17263C] text-white flex flex-col justify-between">
+    <aside className="w-64 min-h-screen bg-[#111F36] text-white flex flex-col justify-between shrink-0 shadow-lg">
       <div>
-        <div className="flex items-center gap-3 px-6 py-6">
-          <Wrench className="text-orange-500" size={28} />
-          <h1 className="text-2xl font-bold">FieldFlow</h1>
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
+          <Wrench className="text-[#FF6000]" size={26} />
+          <h1 className="text-xl font-extrabold tracking-tight">FieldFlow</h1>
         </div>
 
-        <nav className="mt-8 flex flex-col gap-2 px-4">
+        <nav className="mt-6 flex flex-col gap-1.5 px-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isActive = pathname === item.href;
 
             return (
               <Link
                 key={item.title}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                  pathname === item.href
-                    ? "bg-orange-500 text-white"
-                    : "hover:bg-white/10 text-gray-300"
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${
+                  isActive
+                    ? "bg-[#FF6000] text-white shadow-md shadow-orange-500/25"
+                    : "hover:bg-white/10 text-slate-300 hover:text-white"
                 }`}
               >
-                <Icon size={20} />
+                <Icon size={18} />
                 <span>{item.title}</span>
               </Link>
             );
@@ -80,8 +81,8 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 border-t border-white/10">
-        <button className="flex items-center gap-3 text-red-400 hover:text-red-300">
-          <LogOut size={20} />
+        <button className="flex items-center gap-3 text-red-400 hover:text-red-300 text-sm font-bold w-full px-2 py-2">
+          <LogOut size={18} />
           Logout
         </button>
       </div>

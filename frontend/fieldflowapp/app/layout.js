@@ -1,9 +1,6 @@
-"use client";
-
-import GlobalShell from "@/components/layout/GlobalShell";
-import { usePathname } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import LayoutWrapper from "@/components/layout/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,22 +12,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({ children }) {
-  const pathname = usePathname();
+export const metadata = {
+  title: "FieldFlow",
+  description: "Home repair and field service booking platform",
+};
 
-  const isDashboard =
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/customer") ||
-    pathname?.startsWith("/dispatcher") ||
-    pathname?.startsWith("/technician");
-
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <GlobalShell>{children}</GlobalShell>
+      <body className="min-h-full flex flex-col bg-[#F4F6FB]">
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
