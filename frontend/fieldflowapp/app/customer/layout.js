@@ -19,7 +19,7 @@ import {
 
 const navItems = [
   { href: "/customer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/services", label: "Book Service", icon: Wrench },
+  { href: "/customer/book-service", label: "Book Service", icon: Wrench },
   { href: "/customer/bookings", label: "My Bookings", icon: ClipboardList },
   { href: "/customer/notifications", label: "Notifications", icon: Bell },
   { href: "/profile/customer", label: "Profile", icon: User },

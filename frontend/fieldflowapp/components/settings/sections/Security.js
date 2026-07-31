@@ -43,9 +43,9 @@ export default function Security() {
   }
 
   const fields = [
-    { name: "currentPassword", label: "Current Password", key: "current" },
-    { name: "newPassword", label: "New Password", key: "new" },
-    { name: "confirmPassword", label: "Confirm Password", key: "confirm" },
+    { name: "currentPassword", label: "CURRENT PASSWORD", key: "current", placeholder: "Enter current password" },
+    { name: "newPassword", label: "NEW PASSWORD", key: "new", placeholder: "Enter new password" },
+    { name: "confirmPassword", label: "CONFIRM PASSWORD", key: "confirm", placeholder: "Enter confirm password" },
   ];
 
   return (
@@ -56,8 +56,8 @@ export default function Security() {
         icon={Shield}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
-        {fields.map(({ name, label, key }) => (
+      <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+        {fields.map(({ name, label, key, placeholder }) => (
           <Input
             key={name}
             label={label}
@@ -66,14 +66,15 @@ export default function Security() {
             value={form[name]}
             onChange={onChange}
             required
-            placeholder={`Enter ${label.toLowerCase()}`}
+            placeholder={placeholder}
             endElement={
               <button
                 type="button"
                 onClick={() => setShow((p) => ({ ...p, [key]: !p[key] }))}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 transition p-1"
+                aria-label="Toggle password visibility"
               >
-                {show[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                {show[key] ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             }
           />
@@ -81,7 +82,7 @@ export default function Security() {
 
         {msg.text && (
           <div
-            className={`text-xs font-bold px-4 py-3 rounded-xl border ${
+            className={`text-xs font-bold px-4 py-3 rounded-2xl border ${
               msg.ok
                 ? "bg-emerald-50 border-emerald-200 text-emerald-600"
                 : "bg-red-50 border-red-200 text-red-500"
@@ -91,9 +92,11 @@ export default function Security() {
           </div>
         )}
 
-        <Button type="submit" loading={loading} className="w-full sm:w-auto">
-          Update Password
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" loading={loading} className="px-7 py-3.5 text-sm font-extrabold rounded-2xl">
+            Update Password
+          </Button>
+        </div>
       </form>
     </div>
   );

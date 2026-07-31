@@ -37,13 +37,14 @@ async function getDashboard(req, res) {
     const result = await Booking.findByTechnician(technicianId);
     const myBookings = result.rows;
 
+    const today = new Date().toDateString();
+
     const dashboard = {
       assignedJobs: myBookings.filter((b) => b.status === "Assigned").length,
-      inProgress: myBookings.filter((b) => b.status === "In Progress").length,
-      completed: myBookings.filter((b) => b.status === "Completed").length,
+      inProgress: myBookings.filter((b) => b.status === "In Progress" || b.status === "in_progress").length,
+      completed: myBookings.filter((b) => b.status === "Completed" || b.status === "completed").length,
       todayJobs: myBookings.filter((b) => {
         if (!b.booking_date) return false;
-        const today = new Date().toDateString();
         return new Date(b.booking_date).toDateString() === today;
       }).length,
     };

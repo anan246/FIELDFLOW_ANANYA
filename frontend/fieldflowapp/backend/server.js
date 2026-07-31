@@ -19,8 +19,22 @@ const app = express();
 // Middleware
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
-// Routes
+// Catch body parse errors (Express 5 throws on malformed JSON)
+app.use((err, req, res, next) => {
+  if (err.type === "entity.parse.failed")
+    return res.status(400).json({ error: "Invalid JSON in request body." });
+  next(err);
+});
+
+// Database Connection Test
+pool.query("SELECT NOW()")
+  .then((r) => console.log("✅ Connected to Supabase PostgreSQL:", r.rows[0].now))
+  .catch((err) => console.error("❌ Database Connection Failed:", err.message));
+
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);

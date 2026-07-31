@@ -65,7 +65,7 @@ router.post("/create", async (req, res) => {
         status,
         address
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING *
       `,
       [
@@ -82,13 +82,16 @@ router.post("/create", async (req, res) => {
       message: "Booking created successfully",
       booking: result.rows[0],
     });
+
   } catch (error) {
+
     console.error("Booking creation error:", error);
 
     res.status(500).json({
       message: "Failed to create booking",
       error: error.message,
     });
+
   }
 });
 
@@ -96,9 +99,9 @@ router.post("/create", async (req, res) => {
  * CUSTOMER BOOKINGS
  */
 
-// Get bookings for a customer
 router.get("/customer/:userId", async (req, res) => {
   try {
+
     const { userId } = req.params;
 
     const result = await pool.query(
@@ -117,16 +120,15 @@ router.get("/customer/:userId", async (req, res) => {
       [userId]
     );
 
-    res.json({
-      bookings: result.rows,
-    });
+    res.json({ bookings: result.rows });
+
   } catch (error) {
-    console.error("Get customer bookings error:", error);
 
     res.status(500).json({
       message: "Failed to fetch bookings",
       error: error.message,
     });
+
   }
 });
 
@@ -134,9 +136,9 @@ router.get("/customer/:userId", async (req, res) => {
  * CUSTOMER BOOKING DETAILS
  */
 
-// Get single booking details
 router.get("/details/:bookingId", async (req, res) => {
   try {
+
     const { bookingId } = req.params;
 
     const result = await pool.query(
@@ -164,32 +166,32 @@ router.get("/details/:bookingId", async (req, res) => {
       });
     }
 
-    res.json({
-      booking: result.rows[0],
-    });
+    res.json({ booking: result.rows[0] });
+
   } catch (error) {
-    console.error("Get booking details error:", error);
 
     res.status(500).json({
       message: "Failed to fetch booking details",
       error: error.message,
     });
+
   }
 });
 
 /*
- * CUSTOMER CANCEL BOOKING
+ * CANCEL BOOKING
  */
 
 router.patch("/:bookingId/cancel", async (req, res) => {
   try {
+
     const { bookingId } = req.params;
 
     const result = await pool.query(
       `
       UPDATE bookings
-      SET status = 'Cancelled'
-      WHERE id = $1
+      SET status='Cancelled'
+      WHERE id=$1
       RETURNING *
       `,
       [bookingId]
@@ -205,13 +207,14 @@ router.patch("/:bookingId/cancel", async (req, res) => {
       message: "Booking cancelled successfully",
       booking: result.rows[0],
     });
+
   } catch (error) {
-    console.error("Cancel booking error:", error);
 
     res.status(500).json({
       message: "Failed to cancel booking",
       error: error.message,
     });
+
   }
 });
 
