@@ -2,6 +2,27 @@ const Technician = require("../models/Technician");
 const Booking = require("../models/Booking");
 const JobTracking = require("../models/JobTracking");
 
+async function getMyProfile(req, res) {
+  try {
+    const result = await Technician.findById(req.user.id);
+    if (!result.rows.length)
+      return res.status(404).json({ error: "Technician not found." });
+    const u = result.rows[0];
+    res.json({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      category: u.category,
+      experience: u.experience,
+      workingArea: u.working_area,
+      availableToday: u.available_today,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 async function getAllTechnicians(req, res) {
   try {
     const result = await Technician.findAll();
