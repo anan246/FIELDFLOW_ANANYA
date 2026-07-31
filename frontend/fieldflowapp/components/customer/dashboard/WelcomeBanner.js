@@ -1,14 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CalendarDays,
   Sparkles,
 } from "lucide-react";
-import { customerDashboardData } from "@/data/customerDashboardData";
 
 export default function WelcomeBanner() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) setUser(JSON.parse(stored));
+    } catch (_) {}
+  }, []);
+
+  const userName = user?.name || "Customer";
+
   return (
     <section className="relative overflow-hidden rounded-2xl bg-[#14263D] shadow-lg">
 
@@ -29,7 +40,7 @@ export default function WelcomeBanner() {
         </div>
 
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
-          Hello, {customerDashboardData.user.name}
+          Hello, {userName}
         </h1>
 
         <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">

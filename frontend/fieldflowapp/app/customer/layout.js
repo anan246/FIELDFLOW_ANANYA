@@ -39,12 +39,8 @@ export default function CustomerLayout({ children }) {
       const stored = localStorage.getItem("user");
       if (stored) {
         setUser(JSON.parse(stored));
-      } else {
-        setUser({ name: "Madhushri", email: "madhushri@example.com", role: "customer" });
       }
-    } catch {
-      setUser({ name: "Madhushri", email: "madhushri@example.com", role: "customer" });
-    }
+    } catch (_) {}
   }, []);
 
   useEffect(() => {
@@ -63,7 +59,7 @@ export default function CustomerLayout({ children }) {
     router.replace("/login");
   }
 
-  const userName = user?.name || "Madhushri";
+  const userName = user?.name || "Customer";
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (

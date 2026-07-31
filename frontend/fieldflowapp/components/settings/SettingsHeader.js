@@ -3,9 +3,9 @@
 import { Settings, User } from "lucide-react";
 
 export default function SettingsHeader({ user }) {
-  const userName = user?.name || "madhushri";
-  const userRole = user?.role || "Dispatcher";
-  const userEmail = user?.email || "madhushri@gmail.com";
+  const userName = user?.name || "User";
+  const userRole = user?.role || "Customer";
+  const userEmail = user?.email || "user@fieldflow.in";
   const userInitial = userName.charAt(0).toUpperCase();
 
   const formattedRole = userRole.charAt(0).toUpperCase() + userRole.slice(1);

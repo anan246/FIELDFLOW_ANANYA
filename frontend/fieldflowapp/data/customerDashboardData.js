@@ -14,7 +14,7 @@ import {
 export const customerDashboardData = {
 
   user: {
-    name: "Madhushri",
+    name: "Customer",
   },
 
   stats: [
