@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
-import Footers from "@/components/layout/Footers";
+import Footers from "@/components/layout/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,14 +17,18 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  const isDashboard =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/customer") ||
+    pathname?.startsWith("/dispatcher") ||
+    pathname?.startsWith("/technician");
 
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
-        {!isAdmin && <Navbar />}
-        <main className="flex-grow">{children}</main>
-        {!isAdmin && <Footers />}
+      <body className="min-h-screen flex flex-col bg-[#F4F6FB]">
+        {!isDashboard && <Navbar />}
+        {isDashboard ? children : <main className="flex-grow">{children}</main>}
+        {!isDashboard && <Footers />}
       </body>
     </html>
   );

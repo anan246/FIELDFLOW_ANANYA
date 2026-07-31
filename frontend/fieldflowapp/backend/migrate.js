@@ -21,8 +21,22 @@ CREATE TABLE IF NOT EXISTS users (
   invite_code  VARCHAR(100),
   created_at  TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  theme VARCHAR(20) DEFAULT 'dark',
+  language VARCHAR(10) DEFAULT 'en',
+  email_notifications BOOLEAN DEFAULT true,
+  push_notifications BOOLEAN DEFAULT true,
+  marketing_notifications BOOLEAN DEFAULT false,
+  privacy_profile_visibility VARCHAR(20) DEFAULT 'public',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 `;
 
 pool.query(sql)
-  .then(() => { console.log("✅ users table created successfully"); process.exit(0); })
+  .then(() => { console.log("✅ users and user_preferences tables created successfully"); process.exit(0); })
   .catch((err) => { console.error("❌ Migration failed:", err.message); process.exit(1); });
+

@@ -4,56 +4,54 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
-  Users,
   Wrench,
   ClipboardList,
-  LogOut,
-  Search,
   Bell,
-  Mail,
-  X,
-  ChevronDown,
   User,
   Settings,
+  LogOut,
+  Search,
+  Mail,
   Menu,
+  X,
+  ChevronDown
 } from "lucide-react";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/technicians", label: "Technicians", icon: Wrench },
-  { href: "/admin/bookings", label: "Bookings", icon: ClipboardList },
+  { href: "/customer/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/services", label: "Book Service", icon: Wrench },
+  { href: "/customer/bookings", label: "My Bookings", icon: ClipboardList },
+  { href: "/customer/notifications", label: "Notifications", icon: Bell },
+  { href: "/profile/customer", label: "Profile", icon: User },
 ];
 
-const MOCK_NOTIFICATIONS = [
-  { id: 1, text: "New booking #1042 created", time: "2m ago", unread: true },
-  { id: 2, text: "Technician Ravi marked available", time: "15m ago", unread: true },
-  { id: 3, text: "Booking #1038 completed", time: "1h ago", unread: false },
-  { id: 4, text: "New user registered: Priya S.", time: "3h ago", unread: false },
-];
-
-export default function AdminLayout({ children }) {
+export default function CustomerLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [showNotif, setShowNotif] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [notifs, setNotifs] = useState(MOCK_NOTIFICATIONS);
-  const notifRef = useRef(null);
+  const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
-    const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (u?.role !== "admin") router.replace("/register");
-    setUser(u);
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setUser(JSON.parse(stored));
+      } else {
+        setUser({ name: "Madhushri", email: "madhushri@example.com", role: "customer" });
+      }
+    } catch {
+      setUser({ name: "Madhushri", email: "madhushri@example.com", role: "customer" });
+    }
   }, []);
 
   useEffect(() => {
     function handler(e) {
-      if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotif(false);
-      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfile(false);
+      }
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -62,16 +60,10 @@ export default function AdminLayout({ children }) {
   function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.replace("/register");
+    router.replace("/login");
   }
 
-  const unreadCount = notifs.filter((n) => n.unread).length;
-
-  function markAllRead() {
-    setNotifs((prev) => prev.map((n) => ({ ...n, unread: false })));
-  }
-
-  const userName = user?.name || "Admin";
+  const userName = user?.name || "Madhushri";
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
@@ -84,7 +76,7 @@ export default function AdminLayout({ children }) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Left Sidebar */}
       <aside
         className={`w-64 bg-[#111F36] text-slate-300 flex flex-col fixed h-full z-50 transition-transform duration-300 ease-in-out ${
           showSidebar ? "translate-x-0" : "-translate-x-full"
@@ -99,7 +91,6 @@ export default function AdminLayout({ children }) {
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center">
               Field<span className="text-white">Flow</span>
             </h1>
-            <p className="text-[11px] text-slate-400 font-medium">Admin Panel</p>
           </div>
         </div>
 
@@ -111,7 +102,7 @@ export default function AdminLayout({ children }) {
             </p>
             <nav className="space-y-1.5">
               {navItems.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href;
+                const active = pathname === href || (href === "/customer/dashboard" && pathname === "/customer");
                 return (
                   <Link
                     key={href}
@@ -132,13 +123,13 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
 
-        {/* Bottom Navigation */}
+        {/* Bottom Navigation (Settings & Logout) */}
         <div className="p-4 border-t border-white/5 space-y-1.5">
           <Link
-            href="/admin/settings"
+            href="/customer/settings"
             onClick={() => setShowSidebar(false)}
             className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm font-medium ${
-              pathname === "/admin/settings"
+              pathname === "/customer/settings"
                 ? "bg-[#FF6000] text-white font-semibold shadow-lg shadow-orange-500/25"
                 : "text-slate-300 hover:bg-white/5 hover:text-white"
             }`}
@@ -160,7 +151,7 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main Area */}
+      {/* Main Content Container */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-white border-b border-slate-100 px-6 py-3.5 flex items-center justify-between shadow-xs">
@@ -173,13 +164,13 @@ export default function AdminLayout({ children }) {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Search */}
+          {/* Search Bar */}
           <div className="flex items-center gap-3 bg-[#F8FAFC] border border-slate-200/80 rounded-xl px-4 py-2.5 flex-1 max-w-md ml-2 lg:ml-0">
             <Search className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search users, bookings, technicians..."
+              placeholder="Search services..."
               className="bg-transparent text-sm text-slate-800 outline-none w-full placeholder:text-slate-400"
               suppressHydrationWarning
             />
@@ -190,6 +181,7 @@ export default function AdminLayout({ children }) {
             )}
           </div>
 
+          {/* Header Right Actions */}
           <div className="flex items-center gap-3">
             {/* Mail Icon Button */}
             <button
@@ -199,108 +191,59 @@ export default function AdminLayout({ children }) {
               <Mail className="w-4 h-4 text-slate-600" />
             </button>
 
-            {/* Notifications */}
-            <div className="relative" ref={notifRef}>
-              <button
-                aria-label="Notifications"
-                suppressHydrationWarning
-                onClick={() => {
-                  setShowNotif((v) => !v);
-                  setShowProfile(false);
-                }}
-                className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 hover:bg-slate-50 transition shadow-2xs relative"
-              >
-                <Bell className="w-4 h-4 text-slate-600" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-400 border border-white" />
-                )}
-              </button>
+            {/* Notification Bell Button */}
+            <button
+              aria-label="Notifications"
+              className="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-700 hover:bg-slate-50 transition shadow-2xs relative"
+            >
+              <Bell className="w-4 h-4 text-slate-600" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-amber-400 border border-white" />
+            </button>
 
-              {showNotif && (
-                <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
-                    <h4 className="font-bold text-slate-900 text-sm">Notifications</h4>
-                    <button
-                      onClick={markAllRead}
-                      className="text-xs text-[#FF6000] font-semibold hover:underline"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-                    {notifs.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`px-5 py-3.5 flex gap-3 items-start ${
-                          n.unread ? "bg-amber-50/50" : ""
-                        }`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                            n.unread ? "bg-[#FF6000]" : "bg-slate-200"
-                          }`}
-                        />
-                        <div>
-                          <p className="text-xs text-slate-800 font-medium">{n.text}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{n.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Dropdown */}
+            {/* Profile Dropdown Badge */}
             <div className="relative" ref={profileRef}>
               <button
-                suppressHydrationWarning
-                onClick={() => {
-                  setShowProfile((v) => !v);
-                  setShowNotif(false);
-                }}
+                onClick={() => setShowProfile((v) => !v)}
                 className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-50 transition"
+                suppressHydrationWarning
               >
                 <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-sm shadow-xs border border-amber-200 shrink-0">
                   {userInitial}
                 </div>
                 <div className="text-left hidden sm:block">
                   <p className="text-sm font-bold text-slate-900 leading-tight">{userName}</p>
-                  <p className="text-xs text-slate-400 font-normal">Administrator</p>
+                  <p className="text-xs text-slate-400 font-normal">Customer</p>
                 </div>
-                <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
               </button>
 
               {showProfile && (
-                <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden py-1">
-                  <div className="px-5 py-3.5 bg-slate-900 text-white">
-                    <p className="text-white font-bold text-sm">{user?.name || "Admin"}</p>
-                    <p className="text-slate-400 text-xs mt-0.5">{user?.email || "admin@fieldflow.com"}</p>
-                    <span className="mt-2 inline-block bg-[#FF6000] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      ADMINISTRATOR
-                    </span>
+                <div className="absolute right-0 top-12 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden py-1">
+                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                    <p className="font-bold text-slate-900 text-sm">{userName}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email || "customer@fieldflow.com"}</p>
                   </div>
-                  <div className="p-1.5 space-y-0.5">
-                    <Link
-                      href="/admin/users"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
-                    >
-                      <User className="w-4 h-4 text-slate-400" /> My Profile
-                    </Link>
-                    <Link
-                      href="/admin/settings"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
-                    >
-                      <Settings className="w-4 h-4 text-slate-400" /> Settings
-                    </Link>
-                    <hr className="my-1 border-slate-100" />
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-red-500 hover:bg-red-50 transition font-medium w-full text-left"
-                    >
-                      <LogOut className="w-4 h-4 text-red-400" /> Logout
-                    </button>
-                  </div>
+                  <Link
+                    href="/profile/customer"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
+                  >
+                    <User className="w-4 h-4 text-slate-400" />
+                    My Profile
+                  </Link>
+                  <Link
+                    href="/customer/settings"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
+                  >
+                    <Settings className="w-4 h-4 text-slate-400" />
+                    Settings
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 transition font-medium w-full text-left"
+                  >
+                    <LogOut className="w-4 h-4 text-red-400" />
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
