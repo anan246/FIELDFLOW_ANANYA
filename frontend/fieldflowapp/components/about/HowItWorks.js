@@ -60,24 +60,12 @@ export default function WhyChooseUs() {
 
             <div className="absolute -top-10 -left-10 w-40 h-40 bg-orange-300/20 rounded-full blur-3xl"></div>
 
-            <div className="bg-white border border-orange-100 rounded-[40px] h-[520px] flex items-center justify-center shadow-lg">
-
-              <div className="text-center">
-
-                <div className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-6 text-5xl">
-                  🛠️
-                </div>
-
-                <h3 className="text-3xl font-bold text-[#0F2942]">
-                  Service Illustration
-                </h3>
-
-                <p className="text-[#6B7280] mt-3">
-                  Replace with image later
-                </p>
-
-              </div>
-
+            <div className="relative bg-white border border-orange-100 rounded-[40px] h-[520px] overflow-hidden shadow-lg">
+              <img
+                src="https://tridaniel.creedcreatives.net/hirara/wp-content/uploads/sites/62/2026/06/technician-repairing-wires-inside-wooden-cabinet-2026-03-20-05-56-40-utc-768x512.jpg"
+                alt="Technician repairing wires inside wooden cabinet"
+                className="w-full h-full object-cover rounded-[40px]"
+              />
             </div>
 
           </div>

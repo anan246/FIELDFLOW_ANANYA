@@ -8,6 +8,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 export default function StatsCards() {
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -24,16 +26,14 @@ export default function StatsCards() {
 
   const fetchDashboardStats = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/dispatcher/dashboard"
-      );
-
+      const res = await fetch(`${API_BASE_URL}/dispatcher/dashboard`);
       if (!res.ok) {
-        throw new Error("Failed to fetch dashboard data");
+        console.warn("Could not fetch dashboard stats from server, using fallback");
+        setLoading(false);
+        return;
       }
 
       const data = await res.json();
-
       setStats({
         totalBookings: data.totalBookings || 0,
         pendingBookings: data.pendingBookings || 0,

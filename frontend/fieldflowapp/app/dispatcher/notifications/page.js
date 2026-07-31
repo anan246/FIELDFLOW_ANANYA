@@ -5,6 +5,8 @@ import DashboardLayout from "@/components/dispatcher/DashboardLayout";
 import NotificationCard from "@/components/dispatcher/NotificationCard";
 import { Bell, Search } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [search, setSearch] = useState("");
@@ -16,25 +18,25 @@ export default function NotificationsPage() {
 
   const loadNotifications = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/dispatcher/notifications"
-      );
-
+      const response = await fetch(`${API_BASE_URL}/dispatcher/notifications`);
       if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
+        console.warn("Could not fetch notifications from server, using fallback");
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
+      const list = Array.isArray(data) ? data : [];
 
-      const formatted = data.map((item) => ({
+      const formatted = list.map((item) => ({
         id: item.id,
         type: item.type || "booking",
-        title: item.title,
-        message: item.message,
+        title: item.title || "Notification",
+        message: item.message || "New activity recorded.",
         time: item.created_at
           ? new Date(item.created_at).toLocaleString()
           : "Just now",
-        read: item.read ?? false,
+        read: item.is_read ?? item.read ?? false,
       }));
 
       setNotifications(formatted);

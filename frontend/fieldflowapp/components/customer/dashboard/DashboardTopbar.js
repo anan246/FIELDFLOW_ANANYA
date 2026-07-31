@@ -9,7 +9,21 @@ import {
   Menu,
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
+
 export default function DashboardTopbar() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) setUser(JSON.parse(stored));
+    } catch (_) {}
+  }, []);
+
+  const userName = user?.name || "Customer";
+  const userInitial = userName.charAt(0).toUpperCase();
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
 
@@ -61,23 +75,24 @@ export default function DashboardTopbar() {
   <span className="pointer-events-none absolute right-2 top-2 h-2 w-2 rounded-full bg-[#FF6B00]" />
 </a>
           {/* PROFILE */}
-          <div className="ml-2 hidden items-center gap-3 border-l border-slate-200 pl-4 sm:flex">
-
+          <Link
+            href="/customer/profile"
+            className="ml-2 hidden items-center gap-3 border-l border-slate-200 pl-4 sm:flex hover:opacity-80 transition cursor-pointer"
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-[#FF6B00]">
-              M
+              {userInitial}
             </div>
 
             <div className="hidden lg:block">
               <p className="text-sm font-semibold text-slate-800">
-                Madhushri
+                {userName}
               </p>
 
               <p className="text-xs text-slate-400">
                 Customer
               </p>
             </div>
-
-          </div>
+          </Link>
 
         </div>
 

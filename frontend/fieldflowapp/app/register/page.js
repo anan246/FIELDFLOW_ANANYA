@@ -110,11 +110,11 @@ export default function RegisterPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
       setTimeout(() => {
         const role = data.user.role;
-        if (role === "admin")      router.push("/admin");
-        else if (role === "customer")   router.push("/profile/customer");
-        else if (role === "technician") router.push("/profile/technician");
-        else if (role === "dispatcher") router.push("/profile/dispatcher");
-        else router.push("/profile");
+        if (role === "admin")           router.push("/admin");
+        else if (role === "customer")   router.push("/customer/dashboard");
+        else if (role === "technician") router.push("/technician/dashboard");
+        else if (role === "dispatcher") router.push("/dispatcher");
+        else router.push("/");
       }, 1200);
     } catch (err) {
       setError(err.message);

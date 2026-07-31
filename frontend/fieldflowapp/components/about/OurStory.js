@@ -13,25 +13,13 @@ export default function OurStory() {
             {/* Orange Accent */}
             <div className="absolute -top-8 -left-8 w-40 h-40 bg-orange-300/20 rounded-full blur-3xl"></div>
 
-            {/* Placeholder */}
-            <div className="relative bg-white border border-orange-100 rounded-3xl h-[500px] flex items-center justify-center overflow-hidden shadow-lg">
-
-              <div className="text-center">
-
-                <div className="w-24 h-24 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-6">
-                  <span className="text-4xl">🏠</span>
-                </div>
-
-                <h3 className="text-2xl font-semibold text-[#0F2942]">
-                  Story Image
-                </h3>
-
-                <p className="text-[#6B7280] mt-3">
-                  Replace this with your image later.
-                </p>
-
-              </div>
-
+            {/* Image Box */}
+            <div className="relative bg-white border border-orange-100 rounded-3xl h-[500px] overflow-hidden shadow-lg">
+              <img
+                src="https://tridaniel.creedcreatives.net/hirara/wp-content/uploads/sites/62/2026/06/plumber-working-on-sink-pipes-in-home-2026-01-05-05-44-29-utc-768x511.jpg"
+                alt="Plumber working on sink pipes in home"
+                className="w-full h-full object-cover rounded-3xl"
+              />
             </div>
 
           </div>

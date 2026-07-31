@@ -8,13 +8,29 @@ import Preferences from "./Preferences";
 import Security from "./Security";
 import ActionButtons from "./ActionButtons";
 
+import { useRouter } from "next/navigation";
+
 export default function ProfilePage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
-  }, []);
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        setUser(u);
+        if (u.role === "admin")           router.replace("/admin/profile");
+        else if (u.role === "technician") router.replace("/technician/profile");
+        else if (u.role === "dispatcher") router.replace("/dispatcher/profile");
+        else router.replace("/customer/profile");
+      } else {
+        router.replace("/customer/profile");
+      }
+    } catch (_) {
+      router.replace("/customer/profile");
+    }
+  }, [router]);
 
   return (
     <main className="profile-page">

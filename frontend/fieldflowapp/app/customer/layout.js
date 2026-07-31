@@ -22,7 +22,7 @@ const navItems = [
   { href: "/services", label: "Book Service", icon: Wrench },
   { href: "/customer/bookings", label: "My Bookings", icon: ClipboardList },
   { href: "/customer/notifications", label: "Notifications", icon: Bell },
-  { href: "/profile/customer", label: "Profile", icon: User },
+  { href: "/customer/profile", label: "Profile", icon: User },
 ];
 
 export default function CustomerLayout({ children }) {
@@ -223,7 +223,7 @@ export default function CustomerLayout({ children }) {
                     <p className="text-xs text-slate-500 truncate">{user?.email || "customer@fieldflow.com"}</p>
                   </div>
                   <Link
-                    href="/profile/customer"
+                    href="/customer/profile"
                     className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
                   >
                     <User className="w-4 h-4 text-slate-400" />

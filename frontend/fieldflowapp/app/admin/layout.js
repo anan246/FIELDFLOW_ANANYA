@@ -23,6 +23,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/technicians", label: "Technicians", icon: Wrench },
   { href: "/admin/bookings", label: "Bookings", icon: ClipboardList },
+  { href: "/admin/profile", label: "Profile", icon: User },
 ];
 
 const MOCK_NOTIFICATIONS = [
@@ -282,7 +283,7 @@ export default function AdminLayout({ children }) {
                   </div>
                   <div className="p-1.5 space-y-0.5">
                     <Link
-                      href="/admin/users"
+                      href="/admin/profile"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-50 transition font-medium"
                     >
                       <User className="w-4 h-4 text-slate-400" /> My Profile

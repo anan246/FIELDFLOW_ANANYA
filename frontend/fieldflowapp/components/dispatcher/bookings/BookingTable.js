@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import ViewBookingModal from "./ViewBookingModal";
 import AssignTechnicianModal from "./AssignTechnician";
 
@@ -26,53 +27,31 @@ export default function BookingTable() {
   }, []);
 
   const fetchBookings = async () => {
-
     try {
-
-      const response = await fetch(
-        "http://localhost:5000/api/dispatcher/pending-bookings"
-      );
-
+      const response = await fetch(`${API_BASE_URL}/dispatcher/pending-bookings`);
       if (!response.ok) {
-        throw new Error("Failed to fetch bookings");
+        console.warn("Could not fetch pending bookings from server, using fallback");
+        setLoading(false);
+        return;
       }
-
       const data = await response.json();
-
-      const formattedBookings = data.map((booking) => ({
-
+      const list = Array.isArray(data) ? data : [];
+      const formattedBookings = list.map((booking) => ({
         id: booking.id,
-
-        customer: booking.customer_name,
-
-        service: booking.service_name,
-
-        location: booking.address,
-
-        phone: booking.phone,
-
-        technician:
-          booking.technician_name || "Not Assigned",
-
-        status: booking.status,
-
-        priority:
-          booking.priority || "Normal",
-
+        customer: booking.customer_name || "Customer",
+        service: booking.service_name || "Home Service",
+        location: booking.address || "Location N/A",
+        phone: booking.phone || "N/A",
+        technician: booking.technician_name || "Not Assigned",
+        status: booking.status || "Pending",
+        priority: booking.priority || "Normal",
       }));
-
       setBookings(formattedBookings);
-
     } catch (error) {
-
-      console.error("Booking Error:", error);
-
+      console.error("BookingTable fetch error:", error);
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   const statusClasses = {

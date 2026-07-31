@@ -25,20 +25,7 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-<<<<<<< HEAD
-app.post("/test-body", (req, res) => {
-  console.log("Headers:", req.headers["content-type"]);
-  console.log("Body:", req.body);
-
-  res.json({
-    contentType: req.headers["content-type"],
-    body: req.body,
-  });
-});
-
-=======
 // Database Connection Test
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
 pool.query("SELECT NOW()")
   .then((r) =>
     console.log("✅ Connected to Supabase PostgreSQL:", r.rows[0].now)
@@ -55,7 +42,6 @@ app.use("/api/technicians", technicianRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/settings", settingsRoutes);
-
 app.use("/api/contact", contactRoutes);
 app.use("/api/dispatcher", dispatcherRoutes);
 app.use("/api/services", serviceRoutes);
@@ -70,7 +56,6 @@ app.get("/", (req, res) => {
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
-
     res.json({
       success: true,
       message: "Database Connected Successfully",
@@ -78,7 +63,6 @@ app.get("/api/test-db", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
     res.status(500).json({
       success: false,
       message: "Database Connection Failed",

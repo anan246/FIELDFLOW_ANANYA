@@ -11,7 +11,8 @@ const features = [
       "Professional Service",
       "Transparent Communication",
     ],
-    image: "/images/about/trust.jpg",
+    image:
+      "https://demo2.wpopal.com/fikco/wp-content/uploads/2025/05/h1_man.png",
   },
   {
     title: "Built for Efficiency",
@@ -22,7 +23,8 @@ const features = [
       "Smart Job Assignment",
       "Real-Time Updates",
     ],
-    image: "/images/about/efficiency.jpg",
+    image:
+      "https://tridaniel.creedcreatives.net/hirara/wp-content/uploads/sites/62/2026/06/man-repairing-an-oven-inside-home-kitchen-2026-03-25-04-12-15-utc.jpg",
   },
   {
     title: "Designed for Everyone",
@@ -33,7 +35,8 @@ const features = [
       "Technician Focused",
       "Easy Administration",
     ],
-    image: "/images/about/platform.jpg",
+    image:
+      "https://tridaniel.creedcreatives.net/hirara/wp-content/uploads/sites/62/2026/06/technician-repairing-wires-inside-wooden-cabinet-2026-03-20-05-56-40-utc-768x512.jpg",
   },
 ];
 
@@ -66,12 +69,11 @@ export default function WhyFieldFlow() {
                 index % 2 !== 0 ? "lg:[&>*:first-child]:order-2" : ""
               }`}
             >
-              <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-xl border border-orange-100">
-                <Image
+              <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-xl border border-orange-100 bg-white">
+                <img
                   src={feature.image}
                   alt={feature.title}
-                  fill
-                  className="object-cover hover:scale-105 transition duration-700"
+                  className="w-full h-full object-cover hover:scale-105 transition duration-700"
                 />
               </div>
 

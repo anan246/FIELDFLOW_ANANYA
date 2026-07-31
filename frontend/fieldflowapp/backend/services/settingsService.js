@@ -17,23 +17,40 @@ async function ensurePreferences(userId) {
 
 async function getProfile(userId) {
   const result = await pool.query(
-    "SELECT id, name, email, phone, role, city, address, pincode, created_at FROM users WHERE id = $1",
+    `SELECT id, name, email, phone, role, city, address, pincode,
+            category, experience, working_area, available_today,
+            employee_id, office_branch, created_at
+     FROM users WHERE id = $1`,
     [userId]
   );
   return result.rows[0];
 }
 
-async function updateProfile(userId, { name, phone, city, address, pincode }) {
+async function updateProfile(userId, { name, phone, city, address, pincode, category, experience, working_area, available_today, employee_id, office_branch }) {
   const result = await pool.query(
     `UPDATE users SET
-      name    = COALESCE($1, name),
-      phone   = COALESCE($2, phone),
-      city    = COALESCE($3, city),
-      address = COALESCE($4, address),
-      pincode = COALESCE($5, pincode)
-     WHERE id = $6
-     RETURNING id, name, email, phone, role, city, address, pincode`,
-    [name || null, phone || null, city || null, address || null, pincode || null, userId]
+      name            = COALESCE($1, name),
+      phone           = COALESCE($2, phone),
+      city            = COALESCE($3, city),
+      address         = COALESCE($4, address),
+      pincode         = COALESCE($5, pincode),
+      category        = COALESCE($6, category),
+      experience      = COALESCE($7, experience),
+      working_area    = COALESCE($8, working_area),
+      available_today = COALESCE($9, available_today),
+      employee_id     = COALESCE($10, employee_id),
+      office_branch   = COALESCE($11, office_branch)
+     WHERE id = $12
+     RETURNING id, name, email, phone, role, city, address, pincode,
+               category, experience, working_area, available_today,
+               employee_id, office_branch, created_at`,
+    [
+      name || null, phone || null, city || null, address || null, pincode || null,
+      category || null, experience || null, working_area || null,
+      available_today !== undefined ? available_today : null,
+      employee_id || null, office_branch || null,
+      userId
+    ]
   );
   return result.rows[0];
 }
