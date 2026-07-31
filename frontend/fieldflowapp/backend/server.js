@@ -5,6 +5,7 @@ require("dotenv").config();
 const pool = require("./config/db");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
+// Routes
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/adminRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -12,10 +13,10 @@ const technicianRoutes = require("./routes/technicianRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
-
-// Routes
 const contactRoutes = require("./routes/contactRoutes");
 const dispatcherRoutes = require("./routes/dispatcherRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -33,7 +34,7 @@ pool.query("SELECT NOW()")
     console.error("❌ Database Connection Failed:", err.message)
   );
 
-// API Routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
@@ -44,16 +45,19 @@ app.use("/api/settings", settingsRoutes);
 
 app.use("/api/contact", contactRoutes);
 app.use("/api/dispatcher", dispatcherRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/notifications", notificationRoutes);
 
-// Test Route
+// Root Route
 app.get("/", (req, res) => {
-  res.send("🚀 FieldFlow Backend API is Running...");
+  res.send("🚀 FieldFlow Backend Running");
 });
 
-// Check Database Connection
+// Database Test Route
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
+
     res.json({
       success: true,
       message: "Database Connected Successfully",
@@ -61,6 +65,7 @@ app.get("/api/test-db", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Database Connection Failed",
@@ -68,10 +73,12 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
+// Error Middleware
 app.use(errorMiddleware);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
