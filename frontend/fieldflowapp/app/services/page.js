@@ -4,11 +4,7 @@ import ServiceGrid from "@/components/services/servicegrid";
 export default function ServicesPage() {
   return (
     <main className="bg-[#F8F9FB] min-h-screen">
-
-      {/* Hero */}
-
       <section className="max-w-7xl mx-auto px-6 py-20 text-center">
-
         <span className="text-orange-500 font-semibold uppercase tracking-widest">
           What We Offer
         </span>
@@ -21,17 +17,13 @@ export default function ServicesPage() {
           Book trusted professionals for repairs, maintenance and
           installations with transparent pricing.
         </p>
-
       </section>
 
       <section className="max-w-7xl mx-auto px-6">
-
         <SearchBar />
-
       </section>
 
       <ServiceGrid />
-
     </main>
   );
 }
