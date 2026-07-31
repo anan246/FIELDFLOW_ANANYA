@@ -11,8 +11,6 @@ const technicianRoutes = require("./routes/technicianRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
-
-// These exist in your branch's backend
 const serviceRoutes = require("./routes/serviceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 
@@ -20,12 +18,6 @@ const app = express();
 
 // Middleware
 app.use(cors({ origin: "*" }));
-=======
-const technicianRoutes = require("./routes/technicianRoutes");
-
-const app = express();
-
-app.use(cors());
 app.use(express.json());
 
 // Routes
@@ -36,8 +28,6 @@ app.use("/api/technicians", technicianRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/settings", settingsRoutes);
-
-// Existing FieldFlow routes
 app.use("/api/services", serviceRoutes);
 app.use("/api/notifications", notificationRoutes);
 
@@ -49,44 +39,17 @@ app.get("/", (req, res) => {
 // Test database connection
 pool.query("SELECT NOW()")
   .then((result) => {
-    console.log(
-      "Connected to Supabase PostgreSQL:",
-      result.rows[0].now
-    );
-  })
-  .catch((err) => {
-    console.error(
-      "Database Connection Failed:",
-      err.message
-    );
-  });
-
-// Error middleware
-app.use(errorMiddleware);
-=======
-app.use("/api/auth", authRoutes);
-app.use("/api/technicians", technicianRoutes);
-
-pool.query("SELECT NOW()")
-  .then((result) => {
-    console.log("✅ Connected to Supabase PostgreSQL");
+    console.log("Connected to Supabase PostgreSQL");
     console.log("Database Time:", result.rows[0].now);
   })
   .catch((err) => {
-    console.error("❌ Database Connection Failed");
+    console.error("Database Connection Failed:");
     console.error(err.message);
   });
-
-app.get("/", (req, res) => {
-  res.send("FieldFlow Backend Running");
-});
 
 // Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
- madhushri-branch
   console.log(`Server running on port ${PORT}`);
-=======
-  console.log(`🚀 Server running on port ${PORT}`);
 });

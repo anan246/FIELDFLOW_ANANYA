@@ -1,10 +1,7 @@
-import GlobalShell from "@/components/layout/GlobalShell";
-=======
 "use client";
 
+import GlobalShell from "@/components/layout/GlobalShell";
 import { usePathname } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import Footers from "@/components/layout/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -18,11 +15,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "FieldFlow",
-  description: "Home repair and field service booking platform",
-};
-=======
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
@@ -32,7 +24,6 @@ export default function RootLayout({ children }) {
     pathname?.startsWith("/dispatcher") ||
     pathname?.startsWith("/technician");
 
-export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
