@@ -2,23 +2,28 @@
 
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
-import Footers from "./Footers";
+import Footer from "./Footer";
 
 export default function LayoutWrapper({ children }) {
   const pathname = usePathname();
 
-  const hideLayout =
-    pathname.startsWith("/dispatcher");
+  const isDashboard =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/customer") ||
+    pathname.startsWith("/dispatcher") ||
+    pathname.startsWith("/technician");
 
   return (
     <>
-      {!hideLayout && <Navbar />}
+      {!isDashboard && <Navbar />}
 
-      <main className="flex-grow">
-        {children}
-      </main>
+      {isDashboard ? (
+        children
+      ) : (
+        <main className="flex-grow">{children}</main>
+      )}
 
-      {!hideLayout && <Footers />}
+      {!isDashboard && <Footer />}
     </>
   );
 }
