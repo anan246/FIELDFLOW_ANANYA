@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const pool = require("./config/db");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -22,16 +23,15 @@ const app = express();
 // Middleware
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 // Database Connection Test
 pool.query("SELECT NOW()")
   .then((result) => {
-    console.log("✅ Connected to Supabase PostgreSQL");
-    console.log("Database Time:", result.rows[0].now);
+    console.log("✅ Connected to Supabase PostgreSQL:", result.rows[0].now);
   })
   .catch((err) => {
-    console.error("❌ Database Connection Failed");
-    console.error(err.message);
+    console.error("❌ Database Connection Failed:", err.message);
   });
 
 // API Routes
@@ -47,7 +47,7 @@ app.use("/api/dispatcher", dispatcherRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-// Test Route
+// Root Route
 app.get("/", (req, res) => {
   res.send("🚀 FieldFlow Backend Running");
 });
@@ -56,18 +56,24 @@ app.get("/", (req, res) => {
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
+
     res.json({
       success: true,
       message: "Database Connected Successfully",
       time: result.rows[0].now,
     });
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       success: false,
       message: "Database Connection Failed",
     });
   }
 });
+
+// Error Middleware
+app.use(errorMiddleware);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
