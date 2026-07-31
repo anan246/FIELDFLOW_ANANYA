@@ -10,6 +10,10 @@ const Technician = {
   toggleAvailability: (id, available) => pool.query(
     "UPDATE users SET available_today=$1 WHERE id=$2 RETURNING *", [available, id]
   ),
+  updateAvailability: (id, available) => pool.query(
+    "UPDATE users SET available_today=$1 WHERE id=$2 AND role='technician' RETURNING id, name, available_today",
+    [available, id]
+  ),
 };
 
 module.exports = Technician;

@@ -1,41 +1,67 @@
 const pool = require("../config/db");
 
-const createBookingsTable = `
-CREATE TABLE IF NOT EXISTS bookings (
-  id SERIAL PRIMARY KEY,
-  customer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  technician_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  service_category VARCHAR(100) NOT NULL,
-  description TEXT,
-  status VARCHAR(30) DEFAULT 'pending',
-  address TEXT,
-  city VARCHAR(100),
-  scheduled_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
-);`;
-
-pool.query(createBookingsTable).catch(console.error);
-
 const Booking = {
   findAll: () => pool.query(`
-    SELECT b.*, 
-      c.name AS customer_name, c.phone AS customer_phone,
-      t.name AS technician_name
-    FROM bookings b
-    LEFT JOIN users c ON b.customer_id = c.id
-    LEFT JOIN users t ON b.technician_id = t.id
-    ORDER BY b.created_at DESC`),
+    SELECT *
+    FROM bookings
+    ORDER BY created_at DESC
+  `),
   findById: (id) => pool.query("SELECT * FROM bookings WHERE id=$1", [id]),
-  create: (data) => pool.query(
-    `INSERT INTO bookings (customer_id, service_category, description, address, city, scheduled_at)
-     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-    [data.customerId, data.serviceCategory, data.description, data.address, data.city, data.scheduledAt]
-  ),
   updateStatus: (id, status) => pool.query("UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *", [status, id]),
-  assignTechnician: (id, technicianId) => pool.query(
-    "UPDATE bookings SET technician_id=$1, status='assigned' WHERE id=$2 RETURNING *", [technicianId, id]
-  ),
   countByStatus: (status) => pool.query("SELECT COUNT(*) FROM bookings WHERE status=$1", [status]),
+  findByTechnician: (technicianId) =>
+    pool.query(
+      `SELECT b.*
+       FROM bookings b
+       JOIN dispatcher_assignments da
+         ON da.booking_id = b.id
+       WHERE da.technician_id = $1
+       ORDER BY b.created_at DESC`,
+      [technicianId]
+    ),
+
+  findByTechnicianWithDetails: (technicianId) =>
+    pool.query(
+      `SELECT
+         b.id           AS "bookingId",
+         s.name         AS "serviceName",
+         u.name         AS "customerName",
+         b.booking_date AS "bookingDate",
+         b.booking_time AS "bookingTime",
+         b.address,
+         b.status
+       FROM dispatcher_assignments da
+       JOIN bookings b  ON b.id  = da.booking_id
+       JOIN services s  ON s.id  = b.service_id
+       JOIN users u     ON u.id  = b.user_id
+       WHERE da.technician_id = $1
+       ORDER BY b.booking_date DESC, b.booking_time DESC`,
+      [technicianId]
+    ),
+
+  findByIdForTechnician: (bookingId, technicianId) =>
+    pool.query(
+      `SELECT
+         b.*,
+         u.name  AS customer_name,
+         u.email AS customer_email,
+         u.phone AS customer_phone,
+         s.name  AS service_name,
+         da.assigned_at,
+         da.assignment_status
+       FROM dispatcher_assignments da
+       JOIN bookings b ON b.id = da.booking_id
+       JOIN users u    ON u.id = b.user_id
+       JOIN services s ON s.id = b.service_id
+       WHERE da.booking_id = $1 AND da.technician_id = $2`,
+      [bookingId, technicianId]
+    ),
+
+  updateBookingStatus: (id, status) =>
+    pool.query(
+      `UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *`,
+      [status, id]
+    ),
 };
 
 module.exports = Booking;

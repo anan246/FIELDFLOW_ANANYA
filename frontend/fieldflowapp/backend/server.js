@@ -19,6 +19,16 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+app.post("/test-body", (req, res) => {
+  console.log("Headers:", req.headers["content-type"]);
+  console.log("Body:", req.body);
+
+  res.json({
+    contentType: req.headers["content-type"],
+    body: req.body,
+  });
+});
+
 pool.query("SELECT NOW()")
   .then((r) => console.log("✅ Connected to Supabase PostgreSQL:", r.rows[0].now))
   .catch((err) => console.error("❌ Database Connection Failed:", err.message));

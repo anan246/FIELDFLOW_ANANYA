@@ -5,23 +5,17 @@ const pool = require("../config/db");
 async function register(req, res) {
   const {
     name, email, phone, password, role,
-    // customer
     address, city, pincode,
-    // technician
     category, experience, workingArea, availableToday,
-    // dispatcher
     employeeId, officeBranch,
-    // admin
     inviteCode,
   } = req.body;
 
   try {
-    // Check duplicate email
     const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existing.rows.length > 0)
       return res.status(409).json({ error: "Email already registered." });
 
-    // Validate admin invite code
     if (role === "admin" && inviteCode !== process.env.ADMIN_INVITE_CODE)
       return res.status(403).json({ error: "Invalid admin invite code." });
 
@@ -68,4 +62,57 @@ async function register(req, res) {
   }
 }
 
-module.exports = { register };
+async function login(req, res) {
+  console.log(req.body);
+
+  const { email, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const user = result.rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+module.exports = {
+  register,
+  login,
+};
