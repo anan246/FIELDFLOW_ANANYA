@@ -9,39 +9,31 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 export default function AssignTechnicianModal({
   isOpen,
   onClose,
   booking,
   onAssign,
 }) {
-
   const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
     if (isOpen) {
       fetchTechnicians();
     }
-
   }, [isOpen]);
 
   const fetchTechnicians = async () => {
-
     try {
-
-      const res = await fetch(
-        "http://localhost:5000/api/dispatcher/technicians"
-      );
-
+      const res = await fetch(`${API_BASE_URL}/dispatcher/technicians`);
       if (!res.ok) {
         throw new Error("Failed to fetch technicians");
       }
-
       const data = await res.json();
-
-      setTechnicians(data);
+      setTechnicians(Array.isArray(data) ? data : []);
 
     } catch (err) {
 

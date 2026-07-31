@@ -51,37 +51,38 @@ const getDashboardStats = async (req, res) => {
 // Get Available Technicians
 // ============================================
 const getAvailableTechnicians = async (req, res) => {
-
   try {
-
     const result = await pool.query(`
       SELECT
         id,
         name,
         email,
         phone,
-        specialization,
-        rating,
-        jobs_completed,
+        category,
+        category AS specialization,
         experience,
-        status
-      FROM technicians
+        working_area,
+        working_area AS location,
+        available_today,
+        CASE WHEN available_today = true THEN 'Available' ELSE 'Busy' END AS status
+      FROM users
+      WHERE role = 'technician'
       ORDER BY id ASC
     `);
 
+    if (result.rows.length === 0) {
+      const fallback = await pool.query("SELECT * FROM technicians ORDER BY id ASC").catch(() => ({ rows: [] }));
+      return res.status(200).json(fallback.rows);
+    }
+
     res.status(200).json(result.rows);
-
   } catch (error) {
-
-    console.error(error);
-
+    console.error("getAvailableTechnicians error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch technicians"
     });
-
   }
-
 };
 
 // ============================================

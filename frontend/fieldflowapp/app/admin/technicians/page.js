@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Wrench, MapPin, Star, Clock, Search, Filter, X, Phone, Mail, CheckCircle, XCircle } from "lucide-react";
-import { ADMIN_API_BASE_URL } from "@/lib/apiConfig";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
-const API = ADMIN_API_BASE_URL;
+const API = API_BASE_URL;
 
 const CATEGORIES = ["All", "Electrician", "Plumber", "AC Technician", "Carpenter", "Painter"];
 
