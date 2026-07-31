@@ -25,16 +25,6 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-app.post("/test-body", (req, res) => {
-  console.log("Headers:", req.headers["content-type"]);
-  console.log("Body:", req.body);
-
-  res.json({
-    contentType: req.headers["content-type"],
-    body: req.body,
-  });
-});
-
 // Database Connection Test
 pool.query("SELECT NOW()")
   .then((result) => {
