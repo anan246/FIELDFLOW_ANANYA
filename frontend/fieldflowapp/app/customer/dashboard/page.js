@@ -1,8 +1,5 @@
 "use client";
 
-import CustomerSidebar from "@/components/customer/dashboard/CustomerSidebar";
-import DashboardTopbar from "@/components/customer/dashboard/DashboardTopbar";
-
 import WelcomeBanner from "@/components/customer/dashboard/WelcomeBanner";
 import StatsCards from "@/components/customer/dashboard/StatsCards";
 import UpcomingBooking from "@/components/customer/dashboard/UpcomingBooking";
@@ -25,49 +22,37 @@ export default function CustomerDashboard() {
         `,
       }}
     >
-      {/* FIXED CUSTOMER SIDEBAR */}
-      <CustomerSidebar />
+      <div className="px-4 pb-10 pt-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1450px]">
 
-      {/* MAIN CONTENT */}
-      <div className="min-h-screen lg:ml-64">
+          {/* HERO + UPCOMING BOOKING */}
+          <div className="grid gap-5 xl:grid-cols-[1fr_350px]">
+            <WelcomeBanner />
+            <UpcomingBooking />
+          </div>
 
-        <DashboardTopbar />
+          {/* STATISTICS */}
+          <div className="mt-5">
+            <StatsCards />
+          </div>
 
-        <div className="px-4 pb-10 pt-5 sm:px-6 lg:px-8">
+          {/* POPULAR SERVICES */}
+          <div className="mt-7">
+            <ServiceCategories />
+          </div>
 
-          <div className="mx-auto max-w-[1450px]">
+          {/* BOOKINGS + NOTIFICATIONS */}
+          <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_350px]">
+            <RecentBookings />
+            <NotificationPreview />
+          </div>
 
-            {/* HERO + UPCOMING BOOKING */}
-            <div className="grid gap-5 xl:grid-cols-[1fr_350px]">
-              <WelcomeBanner />
-              <UpcomingBooking />
-            </div>
-
-            {/* STATISTICS */}
-            <div className="mt-5">
-              <StatsCards />
-            </div>
-
-            {/* POPULAR SERVICES */}
-            <div className="mt-7">
-              <ServiceCategories />
-            </div>
-
-            {/* BOOKINGS + NOTIFICATIONS */}
-            <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_350px]">
-              <RecentBookings />
-              <NotificationPreview />
-            </div>
-
-            {/* QUICK ACTIONS */}
-            <div className="mt-5">
-              <QuickActions />
-            </div>
-
+          {/* QUICK ACTIONS */}
+          <div className="mt-5">
+            <QuickActions />
           </div>
 
         </div>
-
       </div>
     </main>
   );

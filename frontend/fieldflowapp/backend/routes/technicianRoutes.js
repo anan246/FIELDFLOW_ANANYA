@@ -7,11 +7,13 @@ const {
   getMyJobs,
   getJobById,
   updateJobStatus,
-  updateAvailability
+  updateAvailability,
+  getMyProfile
 } = require("../controllers/technicianController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 router.get("/", protect, adminOnly, getAllTechnicians);
+router.get("/me/profile", protect, getMyProfile);
 router.get("/me/dashboard", protect, getDashboard);
 router.get("/me/jobs", protect, getMyJobs);
 router.patch("/me/availability", protect, updateAvailability);

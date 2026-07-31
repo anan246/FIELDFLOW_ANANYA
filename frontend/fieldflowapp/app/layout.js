@@ -14,15 +14,20 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "FieldFlow",
-  description: "FieldFlow Home Services",
+  description: "Home repair and field service booking platform",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col bg-[#F4F6FB]`}
-      >
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-[#F4F6FB]">
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>

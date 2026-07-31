@@ -77,17 +77,20 @@ async function login(req, res) {
 
     const user = result.rows[0];
 
+    console.log("Email entered:", email);
+    console.log("Password entered:", password);
+    console.log("User found:", user.email);
+    console.log("Stored hash:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password match:", isMatch);
 
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-      },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
