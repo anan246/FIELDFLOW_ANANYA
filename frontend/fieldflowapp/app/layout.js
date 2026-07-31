@@ -17,11 +17,7 @@ export const metadata = {
   description: "Home repair and field service booking platform",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
