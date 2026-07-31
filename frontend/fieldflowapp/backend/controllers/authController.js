@@ -63,11 +63,6 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-<<<<<<< HEAD
-  console.log(req.body);
-
-=======
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
   const { email, password } = req.body;
 
   try {
@@ -76,48 +71,30 @@ async function login(req, res) {
       [email]
     );
 
-<<<<<<< HEAD
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: "Invalid email or password" });
-=======
-    if (!result.rows.length) {
+    if (!result.rows.length)
       return res.status(401).json({ error: "Invalid email or password." });
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
-    }
 
     const user = result.rows[0];
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Email entered:", email);
+    console.log("Password entered:", password);
+    console.log("User found:", user.email);
+    console.log("Stored hash:", user.password);
 
-    if (!isMatch) {
-<<<<<<< HEAD
-      return res.status(401).json({ error: "Invalid email or password" });
-=======
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password match:", isMatch);
+
+    if (!isMatch)
       return res.status(401).json({ error: "Invalid email or password." });
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
-    }
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-      },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-<<<<<<< HEAD
-      {
-        expiresIn: "7d",
-      }
-    );
-
-    res.json({
-      message: "Login successful",
-=======
       { expiresIn: "7d" }
     );
 
     res.json({
       message: "Login successful.",
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
       token,
       user: {
         id: user.id,
@@ -126,18 +103,6 @@ async function login(req, res) {
         role: user.role,
       },
     });
-<<<<<<< HEAD
-  } catch (err) {
-    console.error("Login error:", err.message);
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-module.exports = {
-  register,
-  login,
-};
-=======
 
   } catch (err) {
     console.error("Login error:", err.message);
@@ -146,4 +111,3 @@ module.exports = {
 }
 
 module.exports = { register, login };
->>>>>>> e1b1a6ad1bd5e30c72bb710ef51f830938a2a5b1
