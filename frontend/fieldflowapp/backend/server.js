@@ -3,7 +3,6 @@ const cors = require("cors");
 require("dotenv").config();
 
 const pool = require("./config/db");
-const errorMiddleware = require("./middleware/errorMiddleware");
 
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/adminRoutes");
@@ -21,8 +20,13 @@ const app = express();
 
 // Middleware
 app.use(cors({ origin: "*" }));
+=======
+const technicianRoutes = require("./routes/technicianRoutes");
+
+const app = express();
+
+app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -59,10 +63,30 @@ pool.query("SELECT NOW()")
 
 // Error middleware
 app.use(errorMiddleware);
+=======
+app.use("/api/auth", authRoutes);
+app.use("/api/technicians", technicianRoutes);
+
+pool.query("SELECT NOW()")
+  .then((result) => {
+    console.log("✅ Connected to Supabase PostgreSQL");
+    console.log("Database Time:", result.rows[0].now);
+  })
+  .catch((err) => {
+    console.error("❌ Database Connection Failed");
+    console.error(err.message);
+  });
+
+app.get("/", (req, res) => {
+  res.send("FieldFlow Backend Running");
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+ madhushri-branch
   console.log(`Server running on port ${PORT}`);
+=======
+  console.log(`🚀 Server running on port ${PORT}`);
 });
