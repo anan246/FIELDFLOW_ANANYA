@@ -109,6 +109,28 @@ export default function RegisterPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      if (data.user.role === "customer") {
+        try {
+          const list = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
+          const exists = list.some((c) => c.id === data.user.id || c.email === data.user.email);
+          if (!exists) {
+            list.unshift({
+              id: data.user.id || Date.now(),
+              name: data.user.name || form.name,
+              email: data.user.email || form.email,
+              phone: data.user.phone || form.phone,
+              address: data.user.address || form.address || "Bengaluru",
+              city: data.user.city || form.city || "Bengaluru",
+              role: "customer",
+              created_at: new Date().toISOString(),
+            });
+            localStorage.setItem("allRegisteredCustomers", JSON.stringify(list));
+            window.dispatchEvent(new CustomEvent("fieldflow_customer_registered", { detail: data.user }));
+            window.dispatchEvent(new Event("storage"));
+          }
+        } catch (_) {}
+      }
+
       if (data.user.role === "technician") {
         try {
           const list = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
@@ -116,17 +138,21 @@ export default function RegisterPage() {
           if (!exists) {
             list.unshift({
               id: data.user.id || Date.now(),
-              name: data.user.name,
-              email: data.user.email,
-              phone: data.user.phone,
+              name: data.user.name || form.name,
+              email: data.user.email || form.email,
+              phone: data.user.phone || form.phone,
               category: data.user.category || form.category || "Electrician",
               experience: data.user.experience || form.experience || 3,
               working_area: data.user.workingArea || form.workingArea || "Bengaluru",
               available_today: true,
               status: "Available",
               rating: 4.8,
+              role: "technician",
+              created_at: new Date().toISOString(),
             });
             localStorage.setItem("allRegisteredTechnicians", JSON.stringify(list));
+            window.dispatchEvent(new CustomEvent("fieldflow_technician_registered", { detail: data.user }));
+            window.dispatchEvent(new Event("storage"));
           }
         } catch (_) {}
       }
