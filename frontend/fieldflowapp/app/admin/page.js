@@ -26,14 +26,14 @@ const STATUS_STEPS = ["pending", "assigned", "in_progress", "completed"];
 
 const statusStyle = (s) =>
   s === "completed"
-    ? "bg-emerald-100 text-emerald-600"
+    ? "bg-emerald-100 text-emerald-600 font-bold"
     : s === "assigned" || s === "in_progress"
-    ? "bg-amber-100 text-amber-700"
+    ? "bg-amber-100 text-amber-700 font-bold"
     : s === "pending"
-    ? "bg-slate-100 text-slate-700"
+    ? "bg-slate-100 text-slate-700 font-bold"
     : s === "cancelled"
-    ? "bg-red-100 text-red-500"
-    : "bg-slate-100 text-slate-500";
+    ? "bg-red-100 text-red-500 font-bold"
+    : "bg-slate-100 text-slate-500 font-bold";
 
 // Mock recent activity
 const ACTIVITY = [
@@ -69,7 +69,7 @@ function BookingModal({ booking, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+            className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -91,7 +91,7 @@ function BookingModal({ booking, onClose }) {
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${
                           current
-                            ? "bg-[#FF6000] text-white shadow-md shadow-orange-500/25 ring-4 ring-orange-100"
+                            ? "bg-orange-500 text-white shadow-md shadow-orange-500/25 ring-4 ring-orange-100"
                             : done
                             ? "bg-[#111F36] text-white"
                             : "bg-slate-100 border border-slate-200 text-slate-400"
@@ -130,7 +130,7 @@ function BookingModal({ booking, onClose }) {
               { label: "Status", value: booking.status },
               { label: "Date", value: new Date(booking.created_at).toLocaleDateString("en-IN") },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-[#F8FAFC] border border-slate-100 rounded-xl p-3">
+              <div key={label} className="bg-slate-50 border border-slate-100 rounded-xl p-3">
                 <p className="text-[11px] font-semibold text-slate-400 mb-0.5">{label}</p>
                 <p className="text-sm font-bold text-slate-900 capitalize">{value}</p>
               </div>
@@ -139,7 +139,7 @@ function BookingModal({ booking, onClose }) {
 
           <button
             onClick={onClose}
-            className="w-full bg-[#FF6000] hover:bg-[#E55600] text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-orange-500/20"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-orange-500/20 cursor-pointer"
           >
             Close Details
           </button>
@@ -150,10 +150,10 @@ function BookingModal({ booking, onClose }) {
 }
 
 const MOCK_RECENT_BOOKINGS = [
-  { id: 1042, customer_name: "Rahul Sharma", technician_name: "Ravi Kumar", service_category: "Electrician", city: "Bengaluru", status: "pending", created_at: "2026-07-31T10:00:00Z" },
-  { id: 1041, customer_name: "Priya Singh", technician_name: "Unassigned", service_category: "AC Servicing", city: "Bengaluru", status: "pending", created_at: "2026-07-31T09:30:00Z" },
-  { id: 1040, customer_name: "Suresh Nair", technician_name: "Suresh Nair", service_category: "Plumbing", city: "Bengaluru", status: "in_progress", created_at: "2026-07-31T08:15:00Z" },
-  { id: 1039, customer_name: "Kiran Rao", technician_name: "Kiran Rao", service_category: "Painting", city: "Bengaluru", status: "completed", created_at: "2026-07-30T16:00:00Z" },
+  { id: 1042, customer_name: "Rahul Sharma", technician_name: "Nanda", service_category: "Electrician", city: "Bengaluru", status: "assigned", created_at: new Date().toISOString() },
+  { id: 1041, customer_name: "Priya Sharma", technician_name: "Ravi Kumar", service_category: "AC Servicing", city: "Bengaluru", status: "in_progress", created_at: new Date().toISOString() },
+  { id: 1040, customer_name: "Suresh Nair", technician_name: "Suresh Nair", service_category: "Plumbing", city: "Bengaluru", status: "completed", created_at: new Date().toISOString() },
+  { id: 1039, customer_name: "Meera Tiwari", technician_name: "Unassigned", service_category: "Painting", city: "Delhi", status: "pending", created_at: new Date().toISOString() },
 ];
 
 export default function AdminDashboard() {
@@ -196,6 +196,50 @@ export default function AdminDashboard() {
         }
       } catch (_) {}
 
+      // Merge customer bookings from localStorage
+      try {
+        const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
+        localCustomerBookings.forEach((cb) => {
+          if (!recentBookingsList.some((b) => String(b.id) === String(cb.id || cb.bookingId))) {
+            recentBookingsList.unshift({
+              id: cb.id || cb.bookingId || Math.floor(Math.random() * 8000) + 1000,
+              customer_name: cb.customerName || cb.userName || cb.customer_name || "Customer",
+              service_category: cb.serviceName || cb.serviceCategory || cb.service || "Home Service",
+              technician_name: cb.technician_name || cb.technician || "Unassigned",
+              city: cb.city || cb.address || "Bengaluru",
+              status: (cb.status || "pending").toLowerCase().replace(" ", "_"),
+              created_at: cb.created_at || new Date().toISOString(),
+            });
+          }
+        });
+      } catch (_) {}
+
+      // Merge assigned jobs from localStorage
+      try {
+        const localAssignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
+        localAssignedJobs.forEach((aj) => {
+          const target = recentBookingsList.find((b) => String(b.id) === String(aj.bookingId));
+          if (target) {
+            if (aj.techName) target.technician_name = aj.techName;
+            if (aj.status) target.status = aj.status.toLowerCase().replace(" ", "_");
+          } else {
+            recentBookingsList.unshift({
+              id: aj.bookingId,
+              customer_name: aj.customerName || "Customer",
+              service_category: aj.serviceName || "Service Request",
+              technician_name: aj.techName || "Assigned Technician",
+              city: aj.location || aj.address || "Bengaluru",
+              status: (aj.status || "assigned").toLowerCase().replace(" ", "_"),
+              created_at: aj.assignedAt || new Date().toISOString(),
+            });
+          }
+        });
+      } catch (_) {}
+
+      if (recentBookingsList.length === 0) {
+        recentBookingsList = MOCK_RECENT_BOOKINGS;
+      }
+
       const localTechs = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -213,7 +257,7 @@ export default function AdminDashboard() {
           completedBookings: completedCount,
           revenue: liveStats?.stats?.revenue || 387500,
         },
-        recentBookings: recentBookingsList.length > 0 ? recentBookingsList : MOCK_RECENT_BOOKINGS,
+        recentBookings: recentBookingsList,
       });
     } catch (err) {
       console.error("Admin realtime fetch error:", err);
@@ -258,7 +302,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#FF6000] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-600 font-medium text-sm">Loading dashboard...</p>
         </div>
       </div>
@@ -277,21 +321,13 @@ export default function AdminDashboard() {
       <div className="space-y-8 max-w-7xl mx-auto">
         {/* Top Hero Card Header */}
         <div className="bg-[#111F36] rounded-2xl p-7 text-white relative overflow-hidden flex flex-col justify-between shadow-sm min-h-[200px]">
-          {/* Background Decorative Shapes matching screenshot */}
           <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none overflow-hidden opacity-25">
             <div className="absolute -right-10 -bottom-16 w-64 h-64 rounded-full border-[28px] border-amber-500/20" />
             <div className="absolute right-12 top-6 w-32 h-32 rounded-full border-[16px] border-amber-500/15" />
-            <svg
-              className="absolute right-16 top-10 w-24 h-24 text-amber-400/30"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-            </svg>
           </div>
 
           <div className="relative z-10">
-            <p className="text-[#F59E0B] font-medium text-xs sm:text-sm tracking-wide flex items-center gap-1.5">
+            <p className="text-orange-400 font-semibold text-xs sm:text-sm tracking-wide flex items-center gap-1.5">
               {getTranslation(lang, "welcome_back")} 👋
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mt-2 tracking-tight">
@@ -305,17 +341,16 @@ export default function AdminDashboard() {
           <div className="relative z-10 mt-6 flex items-center gap-4 flex-wrap">
             <Link
               href="/admin/bookings"
-              className="bg-[#FF6000] hover:bg-[#E55600] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2"
             >
               {getTranslation(lang, "manage_bookings")} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
 
-        {/* Stat Cards (Grid of 4) */}
+        {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Stat 1 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition">
+          <div className="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 flex items-center justify-between hover:shadow-md transition">
             <div>
               <p className="text-slate-500 text-xs font-semibold">{getTranslation(lang, "total_users")}</p>
               <h4 className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -330,8 +365,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stat 2 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition">
+          <div className="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 flex items-center justify-between hover:shadow-md transition">
             <div>
               <p className="text-slate-500 text-xs font-semibold">{getTranslation(lang, "total_technicians")}</p>
               <h4 className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -346,8 +380,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stat 3 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition">
+          <div className="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 flex items-center justify-between hover:shadow-md transition">
             <div>
               <p className="text-slate-500 text-xs font-semibold">{getTranslation(lang, "total_bookings")}</p>
               <h4 className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -362,8 +395,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stat 4 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition">
+          <div className="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 flex items-center justify-between hover:shadow-md transition">
             <div>
               <p className="text-slate-500 text-xs font-semibold">{getTranslation(lang, "completed")}</p>
               <h4 className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -379,13 +411,12 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Reports & Analytics + Revenue */}
+        {/* Reports & Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Reports & Analytics */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-xs p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-[#FF6000]" />
+                <BarChart2 className="w-5 h-5 text-orange-500" />
                 <h3 className="text-lg font-bold text-slate-900">Reports & Analytics</h3>
               </div>
               <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
@@ -393,7 +424,6 @@ export default function AdminDashboard() {
               </span>
             </div>
 
-            {/* Bar Chart */}
             <div className="flex items-end gap-3 h-40 pt-4">
               {REVENUE_MONTHS.map(({ month, value }) => (
                 <div key={month} className="flex-1 flex flex-col items-center gap-1.5">
@@ -413,7 +443,6 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            {/* Analytics Summary Row */}
             <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-slate-100">
               {[
                 { icon: Activity, label: "Avg Bookings/Month", value: Math.round((stats?.totalBookings || 0) / 6) },
@@ -421,7 +450,7 @@ export default function AdminDashboard() {
                 { icon: TrendingUp, label: "Growth Rate", value: "+18%" },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="text-center">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-2 text-[#FF6000]">
+                  <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center mx-auto mb-2 text-orange-500">
                     <Icon className="w-4 h-4" />
                   </div>
                   <p className="text-lg font-bold text-slate-900">{value}</p>
@@ -431,8 +460,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Revenue Widget */}
-          <div className="bg-[#111F36] rounded-2xl p-6 text-white flex flex-col justify-between shadow-sm">
+          <div className="bg-[#111F36] rounded-2xl p-6 text-white flex flex-col justify-between shadow-xs">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <DollarSign className="w-5 h-5 text-amber-400" />
@@ -462,7 +490,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#FF6000] rounded-full transition-all"
+                      className="h-full bg-orange-500 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -472,145 +500,63 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Bookings Table + Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Bookings Table */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-slate-900">Recent Bookings</h3>
-              <span className="text-xs font-semibold text-[#FF6000] bg-amber-50 px-3 py-1 rounded-full hidden sm:block">
-                Click row for details
-              </span>
+        {/* Recent Bookings Table */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Recent Customer Bookings & Assigned Technicians</h3>
+              <p className="text-xs text-slate-500 font-medium">Real-time updates across the platform</p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b border-slate-100 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    {["Customer", "Service", "Technician", "Status", "Date"].map((h) => (
-                      <th key={h} className="pb-3 px-2">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {recentBookings?.map((b) => (
-                    <tr
-                      key={b.id}
-                      onClick={() => setSelected(b)}
-                      className="hover:bg-amber-50/40 transition cursor-pointer"
-                    >
-                      <td className="py-3.5 px-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#111F36] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                            {b.customer_name?.[0] || "?"}
-                          </div>
-                          <span className="font-bold text-slate-900">{b.customer_name || "—"}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-2 text-slate-600 font-medium">{b.service_category}</td>
-                      <td className="py-3.5 px-2 text-slate-600 font-medium">{b.technician_name || "—"}</td>
-                      <td className="py-3.5 px-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${statusStyle(b.status)}`}>
-                          {b.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-2 text-slate-400 text-xs font-medium">
-                        {new Date(b.created_at).toLocaleDateString("en-IN")}
-                      </td>
-                    </tr>
+            <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full hidden sm:block">
+              Click row for details
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left border-b border-slate-100 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                  {["Customer", "Service", "Technician", "Status", "Date"].map((h) => (
+                    <th key={h} className="pb-3 px-2">{h}</th>
                   ))}
-                </tbody>
-              </table>
-              {!recentBookings?.length && (
-                <div className="text-center py-12">
-                  <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <p className="text-slate-400 text-sm">No recent bookings found.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column (Breakdown & Activity) */}
-          <div className="space-y-6">
-            {/* Booking Breakdown */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-5">Booking Breakdown</h3>
-              <div className="space-y-4">
-                {[
-                  { label: "Completed", value: stats?.completedBookings || 0, color: "bg-[#FF6000]" },
-                  { label: "Pending", value: stats?.pendingBookings || 0, color: "bg-[#111F36]" },
-                  {
-                    label: "Others",
-                    value: Math.max(0, total - (stats?.pendingBookings || 0) - (stats?.completedBookings || 0)),
-                    color: "bg-slate-200",
-                  },
-                ].map(({ label, value, color }) => (
-                  <div key={label} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-500">{label}</span>
-                      <span className="font-bold text-slate-900">{value}</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${color} transition-all duration-500`}
-                        style={{ width: `${Math.round((value / total) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Activity</h3>
-              <div className="space-y-3">
-                {ACTIVITY.map((a, i) => (
-                  <div key={a.id} className="flex gap-3 items-start">
-                    <div className="relative flex flex-col items-center">
-                      <div className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${a.color}`} />
-                      {i < ACTIVITY.length - 1 && (
-                        <div className="w-px flex-1 bg-slate-100 mt-1" style={{ minHeight: 18 }} />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recentBookings?.map((b) => (
+                  <tr
+                    key={b.id}
+                    onClick={() => setSelected(b)}
+                    className="hover:bg-orange-50/40 transition cursor-pointer"
+                  >
+                    <td className="py-3.5 px-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          {b.customer_name?.[0]?.toUpperCase() || "C"}
+                        </div>
+                        <span className="font-bold text-slate-900">{b.customer_name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-2 text-slate-600 font-medium">{b.service_category}</td>
+                    <td className="py-3.5 px-2 text-slate-600 font-medium">
+                      {b.technician_name && b.technician_name !== "Unassigned" ? (
+                        <span className="text-orange-600 font-bold flex items-center gap-1">
+                          <Wrench size={13} /> {b.technician_name}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic">Unassigned</span>
                       )}
-                    </div>
-                    <div className="pb-1">
-                      <p className="text-xs text-slate-900 font-bold">{a.action}</p>
-                      <p className="text-[11px] text-slate-400">{a.user} · {a.time}</p>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="py-3.5 px-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${statusStyle(b.status)}`}>
+                        {b.status?.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-2 text-slate-400 text-xs font-medium">
+                      {new Date(b.created_at || Date.now()).toLocaleDateString("en-IN")}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Platform Summary */}
-        <div className="bg-[#111F36] rounded-2xl p-6 text-white shadow-sm">
-          <h3 className="text-white font-bold text-lg mb-5">Platform Summary</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                icon: TrendingUp,
-                label: "Completion Rate",
-                value: `${stats?.totalBookings ? Math.round((stats.completedBookings / stats.totalBookings) * 100) : 0}%`,
-              },
-              { icon: Clock, label: "Pending Jobs", value: stats?.pendingBookings ?? 0 },
-              { icon: Wrench, label: "Technicians", value: stats?.totalTechnicians ?? 0 },
-              {
-                icon: Users,
-                label: "Total Users",
-                value: (stats?.totalCustomers || 0) + (stats?.totalTechnicians || 0),
-              },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                <div className="w-10 h-10 bg-[#FF6000]/20 rounded-xl flex items-center justify-center shrink-0 text-amber-400">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-extrabold text-white tracking-tight">{value}</p>
-                  <p className="text-slate-300 text-xs font-medium">{label}</p>
-                </div>
-              </div>
-            ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
