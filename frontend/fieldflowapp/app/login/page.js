@@ -32,8 +32,8 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       const role = data.user.role;
-      if (role === "admin")           router.push("/admin");
-      else if (role === "customer")   router.push("/customer/dashboard");
+      if (role === "admin") router.push("/admin");
+      else if (role === "customer") router.push("/customer/dashboard");
       else if (role === "technician") router.push("/technician/dashboard");
       else if (role === "dispatcher") router.push("/dispatcher");
       else router.push("/");

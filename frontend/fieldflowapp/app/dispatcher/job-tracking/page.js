@@ -93,7 +93,7 @@ export default function JobTrackingPage() {
         } catch (_) {}
       }
 
-      // Merge local storage assigned jobs
+      // Merge local storage assigned jobs so newly assigned technicians show up in real time!
       try {
         const localAssigned = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         localAssigned.forEach((aj) => {
@@ -195,25 +195,27 @@ export default function JobTrackingPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Hero */}
-        <section className="rounded-3xl bg-gradient-to-r from-[#08263B] via-[#10364F] to-[#08263B] p-8 text-white shadow-xl">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="space-y-6 sm:space-y-8">
+        {/* Hero Banner */}
+        <section className="rounded-3xl bg-gradient-to-r from-[#08263B] via-[#10364F] to-[#08263B] p-6 sm:p-8 text-white shadow-xl">
+          <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-4xl font-bold">Job Tracking</h1>
-              <p className="mt-3 max-w-2xl leading-7 text-gray-300">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Job Tracking</h1>
+              <p className="mt-2 sm:mt-3 max-w-2xl text-xs sm:text-sm sm:leading-7 text-gray-300">
                 Track every assigned job, assigned technician, customer location, and progress in real time.
               </p>
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/10 px-8 py-6 backdrop-blur">
-              <p className="text-gray-300">Total Tracked Jobs</p>
-              <h2 className="mt-2 text-5xl font-bold text-orange-400">{jobs.length}</h2>
+            <div className="rounded-2xl border border-white/20 bg-white/10 px-6 sm:px-8 py-4 sm:py-6 backdrop-blur self-start sm:self-auto">
+              <p className="text-gray-300 text-xs sm:text-sm font-medium">Total Tracked Jobs</p>
+              <h2 className="mt-1 sm:mt-2 text-3xl sm:text-5xl font-bold text-orange-400">{jobs.length}</h2>
             </div>
           </div>
         </section>
 
         {loading ? (
-          <div className="rounded-3xl bg-white p-10 text-center shadow-md">Loading Job Tracking...</div>
+          <div className="rounded-3xl bg-white p-8 sm:p-10 text-center shadow-md font-semibold text-slate-600">
+            Loading Job Tracking...
+          </div>
         ) : (
           <>
             {error && (
@@ -223,154 +225,156 @@ export default function JobTrackingPage() {
             )}
 
             {/* Statistics */}
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-              <div className="rounded-3xl bg-white p-6 shadow-md">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-6">
+              <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-semibold">Active Technicians</p>
-                    <h2 className="mt-2 text-3xl font-bold text-[#08263B]">{assignedTechnicians}</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold">Active Techs</p>
+                    <h2 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[#08263B]">{assignedTechnicians}</h2>
                   </div>
-                  <div className="rounded-2xl bg-blue-100 p-4">
-                    <UserCog className="text-blue-600" />
+                  <div className="rounded-xl sm:rounded-2xl bg-blue-100 p-2.5 sm:p-4 shrink-0">
+                    <UserCog className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 shadow-md">
+              <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-semibold">Assigned</p>
-                    <h2 className="mt-2 text-3xl font-bold text-[#08263B]">{assigned}</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold">Assigned</p>
+                    <h2 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[#08263B]">{assigned}</h2>
                   </div>
-                  <div className="rounded-2xl bg-orange-100 p-4">
-                    <ClipboardList className="text-orange-600" />
+                  <div className="rounded-xl sm:rounded-2xl bg-orange-100 p-2.5 sm:p-4 shrink-0">
+                    <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 shadow-md">
+              <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-semibold">On the Way</p>
-                    <h2 className="mt-2 text-3xl font-bold text-[#08263B]">{travelling}</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold">On the Way</p>
+                    <h2 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[#08263B]">{travelling}</h2>
                   </div>
-                  <div className="rounded-2xl bg-blue-100 p-4">
-                    <Truck className="text-blue-600" />
+                  <div className="rounded-xl sm:rounded-2xl bg-blue-100 p-2.5 sm:p-4 shrink-0">
+                    <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 shadow-md">
+              <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-semibold">Started</p>
-                    <h2 className="mt-2 text-3xl font-bold text-[#08263B]">{started}</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold">Started</p>
+                    <h2 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[#08263B]">{started}</h2>
                   </div>
-                  <div className="rounded-2xl bg-purple-100 p-4">
-                    <Clock3 className="text-purple-600" />
+                  <div className="rounded-xl sm:rounded-2xl bg-purple-100 p-2.5 sm:p-4 shrink-0">
+                    <Clock3 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-white p-6 shadow-md">
+              <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100 col-span-2 sm:col-span-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-500 text-sm font-semibold">Completed</p>
-                    <h2 className="mt-2 text-3xl font-bold text-[#08263B]">{completed}</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm font-semibold">Completed</p>
+                    <h2 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-[#08263B]">{completed}</h2>
                   </div>
-                  <div className="rounded-2xl bg-green-100 p-4">
-                    <CheckCircle2 className="text-green-600" />
+                  <div className="rounded-xl sm:rounded-2xl bg-green-100 p-2.5 sm:p-4 shrink-0">
+                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Search */}
-            <div className="rounded-3xl bg-white p-6 shadow-md">
+            <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
               <div className="relative max-w-lg">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
                   placeholder="Search booking, customer or technician..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 py-3 pl-12 pr-4 outline-none transition focus:border-[#08263B]"
+                  className="w-full rounded-xl border border-gray-300 py-2.5 sm:py-3 pl-11 sm:pl-12 pr-4 text-xs sm:text-sm outline-none transition focus:border-[#08263B]"
                 />
               </div>
             </div>
 
             {/* Job List */}
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
               {filteredJobs.length === 0 ? (
-                <div className="rounded-3xl bg-white p-10 text-center shadow-md">
-                  <h2 className="text-2xl font-bold text-gray-700">No Jobs Found</h2>
-                  <p className="mt-2 text-gray-500">Try searching with another keyword.</p>
+                <div className="rounded-3xl bg-white p-8 sm:p-10 text-center shadow-md">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-700">No Jobs Found</h2>
+                  <p className="mt-2 text-xs sm:text-sm text-gray-500">Try searching with another keyword.</p>
                 </div>
               ) : (
                 filteredJobs.map((job) => (
                   <div
                     key={job.booking_id}
-                    className="rounded-3xl bg-white p-6 shadow-md transition hover:shadow-xl border border-slate-100"
+                    className="rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-6 shadow-md transition hover:shadow-xl border border-slate-100"
                   >
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="space-y-4">
+                    <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <h2 className="text-2xl font-bold text-[#08263B]">{job.customer_name}</h2>
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#08263B]">{job.customer_name}</h2>
                           <p className="text-gray-500 text-xs mt-0.5">
                             Booking ID: <span className="font-semibold text-slate-800">#{job.booking_id}</span>
                           </p>
                         </div>
 
-                        <div className="grid gap-3 md:grid-cols-2 text-sm font-medium">
+                        <div className="grid gap-2.5 sm:gap-3 grid-cols-1 sm:grid-cols-2 text-xs sm:text-sm font-medium">
                           <div className="flex items-center gap-2">
-                            <ClipboardList size={18} className="text-orange-500" />
+                            <ClipboardList size={16} className="text-orange-500 shrink-0" />
                             <span>{job.service_name}</span>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <UserCog size={18} className="text-blue-600" />
+                            <UserCog size={16} className="text-blue-600 shrink-0" />
                             <span>Technician: <strong className="text-slate-900">{job.technician_name}</strong></span>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <MapPin size={18} className="text-red-500" />
-                            <span>{job.address}</span>
+                            <MapPin size={16} className="text-red-500 shrink-0" />
+                            <span className="truncate">{job.address}</span>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <Clock3 size={18} className="text-purple-500" />
+                            <Clock3 size={16} className="text-purple-500 shrink-0" />
                             <span>{job.booking_time}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-4">
-                        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${badgeColor(job.booking_status)}`}>
+                      <div className="flex flex-wrap sm:flex-col items-start sm:items-end justify-between sm:justify-start gap-3 sm:gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <span className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold ${badgeColor(job.booking_status)}`}>
                           {job.booking_status}
                         </span>
 
-                        <select
-                          value={job.booking_status}
-                          onChange={(e) => updateStatus(job.booking_id, e.target.value)}
-                          className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold cursor-pointer outline-none focus:border-orange-500"
-                        >
-                          <option value="Assigned">Assigned</option>
-                          <option value="On the Way">On the Way</option>
-                          <option value="Started">Started</option>
-                          <option value="Completed">Completed</option>
-                        </select>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <select
+                            value={job.booking_status}
+                            onChange={(e) => updateStatus(job.booking_id, e.target.value)}
+                            className="rounded-xl border border-gray-300 px-3 py-2 text-xs sm:text-sm font-semibold cursor-pointer outline-none focus:border-orange-500 bg-white"
+                          >
+                            <option value="Assigned">Assigned</option>
+                            <option value="On the Way">On the Way</option>
+                            <option value="Started">Started</option>
+                            <option value="Completed">Completed</option>
+                          </select>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedJob(job);
-                            setShowModal(true);
-                          }}
-                          className="flex items-center gap-2 rounded-xl bg-[#08263B] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#10364F] cursor-pointer"
-                        >
-                          <Eye size={18} />
-                          View Details
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedJob(job);
+                              setShowModal(true);
+                            }}
+                            className="flex items-center justify-center gap-2 rounded-xl bg-[#08263B] px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white transition hover:bg-[#10364F] cursor-pointer"
+                          >
+                            <Eye size={16} />
+                            View
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -381,54 +385,54 @@ export default function JobTrackingPage() {
             {/* View Details Modal */}
             {showModal && selectedJob && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-                <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
+                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl">
                   <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-3xl font-bold text-[#08263B]">Job Details</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[#08263B]">Job Details</h2>
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="rounded-xl bg-slate-100 px-4 py-2 text-slate-700 font-bold hover:bg-slate-200"
+                      className="rounded-xl bg-slate-100 px-4 py-2 text-xs sm:text-sm text-slate-700 font-bold hover:bg-slate-200"
                     >
                       Close
                     </button>
                   </div>
 
-                  <div className="grid gap-5 md:grid-cols-2">
+                  <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2">
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase">Booking ID</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">#{selectedJob.booking_id}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">#{selectedJob.booking_id}</h3>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase">Customer</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">{selectedJob.customer_name}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">{selectedJob.customer_name}</h3>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase">Technician</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">{selectedJob.technician_name}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">{selectedJob.technician_name}</h3>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase">Service</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">{selectedJob.service_name}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">{selectedJob.service_name}</h3>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase mb-1">Status</p>
-                      <span className={`inline-block rounded-full px-4 py-1.5 text-xs font-semibold ${badgeColor(selectedJob.booking_status)}`}>
+                      <span className={`inline-block rounded-full px-3.5 py-1 text-xs font-semibold ${badgeColor(selectedJob.booking_status)}`}>
                         {selectedJob.booking_status}
                       </span>
                     </div>
 
                     <div>
                       <p className="text-xs text-gray-500 font-semibold uppercase">Booking Time</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">{selectedJob.booking_time}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">{selectedJob.booking_time}</h3>
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div className="sm:col-span-2">
                       <p className="text-xs text-gray-500 font-semibold uppercase">Address</p>
-                      <h3 className="font-bold text-slate-900 mt-0.5">{selectedJob.address}</h3>
+                      <h3 className="font-bold text-slate-900 mt-0.5 text-sm sm:text-base">{selectedJob.address}</h3>
                     </div>
                   </div>
                 </div>
