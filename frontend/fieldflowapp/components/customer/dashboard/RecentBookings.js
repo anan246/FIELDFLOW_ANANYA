@@ -54,14 +54,25 @@ export default function RecentBookings() {
         });
       } catch (_) {}
 
-      if (list.length === 0) {
-        list = [
+      // Deduplicate list by id
+      const uniqueList = [];
+      const seenIds = new Set();
+      list.forEach((b) => {
+        const bId = String(b.id || b.bookingId || Math.random());
+        if (!seenIds.has(bId)) {
+          seenIds.add(bId);
+          uniqueList.push(b);
+        }
+      });
+
+      if (uniqueList.length === 0) {
+        uniqueList.push(
           { id: 1001, service: "Electrical Repair", date: "Today", status: "Assigned", technician: "Nanda" },
-          { id: 1002, service: "AC Servicing", date: "Yesterday", status: "Completed", technician: "Ravi Kumar" },
-        ];
+          { id: 1002, service: "AC Servicing", date: "Yesterday", status: "Completed", technician: "Ravi Kumar" }
+        );
       }
 
-      setBookings(list.slice(0, 3));
+      setBookings(uniqueList.slice(0, 3));
     } catch (err) {
       console.error(err);
     } finally {
@@ -105,9 +116,9 @@ export default function RecentBookings() {
         {loading ? (
           <div className="p-6 text-center text-xs text-slate-500 font-medium">Loading recent bookings...</div>
         ) : (
-          bookings.map((booking) => (
+          bookings.map((booking, idx) => (
             <div
-              key={booking.id}
+              key={`recent-booking-${booking.id || idx}-${idx}`}
               className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 transition hover:border-[#FF6B00]"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

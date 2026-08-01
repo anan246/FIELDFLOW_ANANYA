@@ -49,7 +49,7 @@ export default function MyBookingsPage() {
     try {
       let list = [];
 
-      // 1. Try fetching from Customer API endpoint
+      // 1. Fetch from Customer API endpoint
       try {
         const u = JSON.parse(localStorage.getItem("user") || "{}");
         const userId = u.id || 1;
@@ -121,14 +121,25 @@ export default function MyBookingsPage() {
         });
       } catch (_) {}
 
-      if (list.length === 0) {
-        list = [
+      // 4. Deduplicate list by id
+      const uniqueList = [];
+      const seenIds = new Set();
+      list.forEach((b) => {
+        const bId = String(b.id);
+        if (!seenIds.has(bId)) {
+          seenIds.add(bId);
+          uniqueList.push(b);
+        }
+      });
+
+      if (uniqueList.length === 0) {
+        uniqueList.push(
           { id: 1001, service: "Electrical Repair", category: "Electrical", price: 499, date: "Today", time: "10:30 AM", address: "MG Road, Bengaluru", status: "Upcoming", technician: "Nanda" },
-          { id: 1002, service: "AC Servicing", category: "Appliance Repair", price: 799, date: "Yesterday", time: "02:00 PM", address: "Indiranagar, Bengaluru", status: "Completed", technician: "Ravi Kumar" },
-        ];
+          { id: 1002, service: "AC Servicing", category: "Appliance Repair", price: 799, date: "Yesterday", time: "02:00 PM", address: "Indiranagar, Bengaluru", status: "Completed", technician: "Ravi Kumar" }
+        );
       }
 
-      setBookings(list);
+      setBookings(uniqueList);
     } catch (err) {
       console.error("fetchBookings error:", err);
     } finally {
@@ -254,8 +265,8 @@ export default function MyBookingsPage() {
         ) : (
           <div className="space-y-4">
             {filteredBookings.length > 0 ? (
-              filteredBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
+              filteredBookings.map((booking, idx) => (
+                <BookingCard key={`my-booking-${booking.id || idx}-${idx}`} booking={booking} />
               ))
             ) : (
               <div className="rounded-2xl bg-white px-6 py-12 text-center shadow-xs">
