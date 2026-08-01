@@ -19,13 +19,13 @@ function formatDateSafe(dateStr) {
 }
 
 const MOCK_USERS = [
-  { id: 1, name: "Priya Sharma", email: "priya@mail.com", phone: "9876543210", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 2, name: "Ravi Kumar", email: "ravi@fieldflow.in", phone: "9123456780", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 3, name: "Nanda", email: "nanda@fieldflow.in", phone: "9876543210", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 4, name: "Suresh Nair", email: "suresh@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 5, name: "Ananya L S", email: "ananya@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "admin", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 6, name: "Meera Tiwari", email: "meera@fieldflow.in", phone: "9871234560", city: "Delhi", role: "dispatcher", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 7, name: "Rahul Sharma", email: "rahul@mail.com", phone: "9765432100", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 101, name: "Priya Sharma", email: "priya@mail.com", phone: "9876543210", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 102, name: "Ravi Kumar", email: "ravi@fieldflow.in", phone: "9123456780", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 103, name: "Nanda", email: "nanda@fieldflow.in", phone: "9876543210", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 104, name: "Suresh Nair", email: "suresh@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 105, name: "Ananya L S", email: "ananya@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "admin", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 106, name: "Meera Tiwari", email: "meera@fieldflow.in", phone: "9871234560", city: "Delhi", role: "dispatcher", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 107, name: "Rahul Sharma", email: "rahul@mail.com", phone: "9765432100", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
 ];
 
 const ROLES = ["all", "customer", "technician", "dispatcher", "admin"];
@@ -175,7 +175,18 @@ export default function UsersPage() {
       });
     }
 
-    setUsers(list);
+    // Deduplicate by email / name
+    const uniqueUsers = [];
+    const seenKeys = new Set();
+    list.forEach((u) => {
+      const uKey = (u.email || u.name || String(u.id)).toLowerCase();
+      if (!seenKeys.has(uKey)) {
+        seenKeys.add(uKey);
+        uniqueUsers.push(u);
+      }
+    });
+
+    setUsers(uniqueUsers);
     setLoading(false);
   };
 
@@ -311,9 +322,9 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((u) => (
-                    <tr key={u.id || u.email} className="hover:bg-orange-50/40 transition">
-                      <td className="px-6 py-4 text-slate-400 font-mono text-xs">#{u.id || "101"}</td>
+                  filtered.map((u, idx) => (
+                    <tr key={`user-row-${u.email || u.id}-${idx}`} className="hover:bg-orange-50/40 transition">
+                      <td className="px-6 py-4 text-slate-400 font-mono text-xs">#{u.id || idx + 101}</td>
                       <td className="px-6 py-4 cursor-pointer" onClick={() => setSelected(u)}>
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-full bg-[#111F36] flex items-center justify-center text-white text-xs font-bold shrink-0">
