@@ -17,13 +17,13 @@ const STATUS_COLORS = {
 const STATUSES = ["pending", "assigned", "in_progress", "completed", "cancelled"];
 
 const DEFAULT_REALISTIC_CUSTOMERS = [
-  "Rahul Sharma",
-  "Priya Sharma",
+  "Kripa",
   "Ananya L S",
+  "Priya Sharma",
+  "Rahul Sharma",
   "Suresh Nair",
   "Kiran Kumar",
   "Meera Tiwari",
-  "Rohit Verma",
   "Jetalal Gada",
 ];
 
@@ -49,11 +49,10 @@ function getCleanCustomerName(b, idx = 0) {
 }
 
 const MOCK_REAL_BOOKINGS = [
-  { id: 1001, customer_name: "Rahul Sharma", service_category: "Electrical Repair", technician_name: "Nanda", city: "Bengaluru", status: "assigned", created_at: "2026-08-01T00:00:00.000Z", address: "MG Road, Bengaluru" },
-  { id: 1002, customer_name: "Priya Sharma", service_category: "AC Servicing", technician_name: "Ravi Kumar", city: "Bengaluru", status: "in_progress", created_at: "2026-08-01T00:00:00.000Z", address: "Indiranagar, Bengaluru" },
-  { id: 1003, customer_name: "Suresh Nair", service_category: "Plumbing Repair", technician_name: "Suresh Nair", city: "Bengaluru", status: "completed", created_at: "2026-08-01T00:00:00.000Z", address: "Whitefield, Bengaluru" },
-  { id: 1004, customer_name: "Meera Tiwari", service_category: "Home Painting", technician_name: "Unassigned", city: "Delhi", status: "pending", created_at: "2026-08-01T00:00:00.000Z", address: "7 Connaught Place" },
-  { id: 1005, customer_name: "Jetalal Gada", service_category: "Electronics Repair", technician_name: "Ravi Kumar", city: "Mumbai", status: "assigned", created_at: "2026-08-01T00:00:00.000Z", address: "Powai, Mumbai" },
+  { id: 1001, customer_name: "Kripa", service_category: "Home Repair", technician_name: "Unassigned", city: "Bengaluru", status: "pending", created_at: "2026-08-01T00:00:00.000Z", address: "Bengaluru" },
+  { id: 1002, customer_name: "Rahul Sharma", service_category: "Electrical Repair", technician_name: "Nanda", city: "Bengaluru", status: "assigned", created_at: "2026-08-01T00:00:00.000Z", address: "MG Road, Bengaluru" },
+  { id: 1003, customer_name: "Priya Sharma", service_category: "AC Servicing", technician_name: "Ravi Kumar", city: "Bengaluru", status: "in_progress", created_at: "2026-08-01T00:00:00.000Z", address: "Indiranagar, Bengaluru" },
+  { id: 1004, customer_name: "Suresh Nair", service_category: "Plumbing Repair", technician_name: "Suresh Nair", city: "Bengaluru", status: "completed", created_at: "2026-08-01T00:00:00.000Z", address: "Whitefield, Bengaluru" },
 ];
 
 function BookingModal({ booking, onClose, onStatusChange }) {
@@ -181,6 +180,7 @@ export default function BookingsPage() {
     window.addEventListener("focus", handleSync);
     window.addEventListener("storage", handleSync);
     window.addEventListener("fieldflow_booking_created", handleSync);
+    window.addEventListener("fieldflow_customer_registered", handleSync);
     window.addEventListener("fieldflow_job_assigned", handleSync);
     window.addEventListener("fieldflow_job_status_change", handleSync);
 
@@ -189,6 +189,7 @@ export default function BookingsPage() {
       window.removeEventListener("focus", handleSync);
       window.removeEventListener("storage", handleSync);
       window.removeEventListener("fieldflow_booking_created", handleSync);
+      window.removeEventListener("fieldflow_customer_registered", handleSync);
       window.removeEventListener("fieldflow_job_assigned", handleSync);
       window.removeEventListener("fieldflow_job_status_change", handleSync);
     };
@@ -243,7 +244,26 @@ export default function BookingsPage() {
       } catch (_) {}
     }
 
-    // 3. Merge Customer Bookings created in frontend localStorage
+    // 3. Merge registered customers (e.g. Kripa) into bookings
+    try {
+      const allCustomers = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
+      allCustomers.forEach((cust, idx) => {
+        if (!list.some((b) => b.customer_name?.toLowerCase() === cust.name?.toLowerCase())) {
+          list.unshift({
+            id: cust.id || 1050 + idx,
+            customer_name: cust.name,
+            service_category: cust.service || "Home Repair",
+            technician_name: "Unassigned",
+            city: cust.city || cust.address || "Bengaluru",
+            status: "pending",
+            created_at: cust.created_at || "2026-08-01T00:00:00.000Z",
+            address: cust.address || "Bengaluru",
+          });
+        }
+      });
+    } catch (_) {}
+
+    // 4. Merge Customer Bookings created in frontend localStorage
     try {
       const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
       localCustomerBookings.forEach((cb, idx) => {
@@ -266,7 +286,7 @@ export default function BookingsPage() {
       });
     } catch (_) {}
 
-    // 4. Merge Assigned Jobs
+    // 5. Merge Assigned Jobs
     try {
       const localAssignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
       localAssignedJobs.forEach((aj, idx) => {
@@ -293,7 +313,18 @@ export default function BookingsPage() {
       list = MOCK_REAL_BOOKINGS;
     }
 
-    setBookings(list);
+    // Deduplicate by id & customer_name
+    const uniqueBookings = [];
+    const seenBookingKeys = new Set();
+    list.forEach((b) => {
+      const bKey = `${b.id}-${b.customer_name}`.toLowerCase();
+      if (!seenBookingKeys.has(bKey)) {
+        seenBookingKeys.add(bKey);
+        uniqueBookings.push(b);
+      }
+    });
+
+    setBookings(uniqueBookings);
     setLoading(false);
   };
 
@@ -454,9 +485,9 @@ export default function BookingsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((b) => (
+                  filtered.map((b, idx) => (
                     <tr
-                      key={b.id}
+                      key={`admin-booking-row-${b.id || idx}-${idx}`}
                       onClick={() => setSelected(b)}
                       className="hover:bg-white/5 transition cursor-pointer"
                     >

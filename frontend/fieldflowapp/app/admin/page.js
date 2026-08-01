@@ -42,13 +42,13 @@ function formatDateSafe(dateStr) {
 }
 
 const DEFAULT_REALISTIC_CUSTOMERS = [
-  "Rahul Sharma",
-  "Priya Sharma",
+  "Kripa",
   "Ananya L S",
+  "Priya Sharma",
+  "Rahul Sharma",
   "Suresh Nair",
   "Kiran Kumar",
   "Meera Tiwari",
-  "Rohit Verma",
   "Jetalal Gada",
 ];
 
@@ -171,10 +171,10 @@ function BookingModal({ booking, onClose }) {
 }
 
 const MOCK_RECENT_BOOKINGS = [
+  { id: 1043, customer_name: "Kripa", technician_name: "Unassigned", service_category: "Home Repair", city: "Bengaluru", status: "pending", created_at: "2026-08-01T00:00:00.000Z" },
   { id: 1042, customer_name: "Rahul Sharma", technician_name: "Nanda", service_category: "Electrician", city: "Bengaluru", status: "assigned", created_at: "2026-08-01T00:00:00.000Z" },
   { id: 1041, customer_name: "Priya Sharma", technician_name: "Ravi Kumar", service_category: "AC Servicing", city: "Bengaluru", status: "in_progress", created_at: "2026-08-01T00:00:00.000Z" },
   { id: 1040, customer_name: "Suresh Nair", technician_name: "Suresh Nair", service_category: "Plumbing", city: "Bengaluru", status: "completed", created_at: "2026-08-01T00:00:00.000Z" },
-  { id: 1039, customer_name: "Meera Tiwari", technician_name: "Unassigned", service_category: "Painting", city: "Delhi", status: "pending", created_at: "2026-08-01T00:00:00.000Z" },
 ];
 
 export default function AdminDashboard() {
@@ -215,6 +215,24 @@ export default function AdminDashboard() {
             }));
           }
         }
+      } catch (_) {}
+
+      // Merge all registered customers (e.g. Kripa) into recentBookingsList
+      try {
+        const allCustomers = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
+        allCustomers.forEach((cust, idx) => {
+          if (!recentBookingsList.some((b) => b.customer_name?.toLowerCase() === cust.name?.toLowerCase())) {
+            recentBookingsList.unshift({
+              id: cust.id || 1050 + idx,
+              customer_name: cust.name,
+              service_category: cust.service || "Home Service",
+              technician_name: "Unassigned",
+              city: cust.city || cust.address || "Bengaluru",
+              status: "pending",
+              created_at: cust.created_at || "2026-08-01T00:00:00.000Z",
+            });
+          }
+        });
       } catch (_) {}
 
       try {
@@ -259,11 +277,22 @@ export default function AdminDashboard() {
         recentBookingsList = MOCK_RECENT_BOOKINGS;
       }
 
+      // Deduplicate recentBookingsList by customer_name and id
+      const uniqueBookings = [];
+      const seenBookingKeys = new Set();
+      recentBookingsList.forEach((b) => {
+        const bKey = `${b.id}-${b.customer_name}`.toLowerCase();
+        if (!seenBookingKeys.has(bKey)) {
+          seenBookingKeys.add(bKey);
+          uniqueBookings.push(b);
+        }
+      });
+
       const localTechs = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
       const totalTechsCount = Math.max(localTechs.length, liveDispatcherStats?.availableTechnicians || 0, liveStats?.stats?.totalTechnicians || 12);
-      const totalBookingsCount = Math.max(recentBookingsList.length, liveDispatcherStats?.totalBookings || 0, liveStats?.stats?.totalBookings || 24);
+      const totalBookingsCount = Math.max(uniqueBookings.length, liveDispatcherStats?.totalBookings || 0, liveStats?.stats?.totalBookings || 24);
       const pendingCount = liveDispatcherStats?.pendingBookings || liveStats?.stats?.pendingBookings || 18;
       const completedCount = liveStats?.stats?.completedBookings || 19;
 
@@ -276,7 +305,7 @@ export default function AdminDashboard() {
           completedBookings: completedCount,
           revenue: liveStats?.stats?.revenue || 387500,
         },
-        recentBookings: recentBookingsList,
+        recentBookings: uniqueBookings,
       });
     } catch (err) {
       console.error("Admin realtime fetch error:", err);
@@ -304,6 +333,7 @@ export default function AdminDashboard() {
     window.addEventListener("storage", fetchRealtimeData);
     window.addEventListener("storage", loadLang);
     window.addEventListener("focus", fetchRealtimeData);
+    window.addEventListener("fieldflow_customer_registered", fetchRealtimeData);
     window.addEventListener("fieldflow_language_change", handleLangChange);
 
     return () => {
@@ -311,6 +341,7 @@ export default function AdminDashboard() {
       window.removeEventListener("storage", fetchRealtimeData);
       window.removeEventListener("storage", loadLang);
       window.removeEventListener("focus", fetchRealtimeData);
+      window.removeEventListener("fieldflow_customer_registered", fetchRealtimeData);
       window.removeEventListener("fieldflow_language_change", handleLangChange);
     };
   }, []);
@@ -532,9 +563,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentBookings?.map((b) => (
+                {recentBookings?.map((b, idx) => (
                   <tr
-                    key={b.id}
+                    key={`admin-dashboard-row-${b.id || idx}-${idx}`}
                     onClick={() => setSelected(b)}
                     className="hover:bg-orange-50/40 transition cursor-pointer"
                   >

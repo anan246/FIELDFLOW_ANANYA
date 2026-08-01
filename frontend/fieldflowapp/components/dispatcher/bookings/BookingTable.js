@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 
 const DEFAULT_REALISTIC_CUSTOMERS = [
-  "Rahul Sharma",
-  "Priya Sharma",
+  "Kripa",
   "Ananya L S",
+  "Priya Sharma",
+  "Rahul Sharma",
   "Suresh Nair",
   "Kiran Kumar",
   "Meera Tiwari",
-  "Rohit Verma",
   "Jetalal Gada",
 ];
 
@@ -92,7 +92,26 @@ export default function BookingTable() {
         }
       } catch (_) {}
 
-      // 2. Merge local storage customer bookings created in frontend
+      // 2. Merge registered customers (e.g. Kripa)
+      try {
+        const allCustomers = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
+        allCustomers.forEach((cust, idx) => {
+          if (!list.some((b) => b.customer?.toLowerCase() === cust.name?.toLowerCase())) {
+            list.unshift({
+              id: cust.id || 1050 + idx,
+              customer: cust.name,
+              service: cust.service || "Home Service",
+              location: cust.city || cust.address || "Bengaluru",
+              phone: cust.phone || "9876543210",
+              technician: "Not Assigned",
+              status: "Pending",
+              priority: "High",
+            });
+          }
+        });
+      } catch (_) {}
+
+      // 3. Merge local storage customer bookings created in frontend
       try {
         const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
         const localFieldflowBookings = JSON.parse(localStorage.getItem("fieldflow_bookings") || "[]");
@@ -118,7 +137,7 @@ export default function BookingTable() {
         });
       } catch (_) {}
 
-      // 3. Merge assigned jobs
+      // 4. Merge assigned jobs
       try {
         const assignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         list = list.map((b) => {
@@ -136,14 +155,25 @@ export default function BookingTable() {
 
       if (list.length === 0) {
         list = [
-          { id: 1001, customer: "Rahul Sharma", service: "Electrical Repair", location: "MG Road, Bengaluru", phone: "9876543210", technician: "Nanda", status: "Assigned", priority: "High" },
-          { id: 1002, customer: "Priya Sharma", service: "AC Servicing", location: "Indiranagar, Bengaluru", phone: "9123456780", technician: "Ravi Kumar", status: "In Progress", priority: "Normal" },
-          { id: 1003, customer: "Suresh Nair", service: "Plumbing Repair", location: "Whitefield, Bengaluru", phone: "9988776655", technician: "Suresh Nair", status: "Completed", priority: "Normal" },
-          { id: 1004, customer: "Meera Tiwari", service: "Home Painting", location: "Delhi", phone: "9871234560", technician: "Not Assigned", status: "Pending", priority: "Urgent" },
+          { id: 1001, customer: "Kripa", service: "Home Repair", location: "Bengaluru", phone: "9876543210", technician: "Not Assigned", status: "Pending", priority: "High" },
+          { id: 1002, customer: "Rahul Sharma", service: "Electrical Repair", location: "MG Road, Bengaluru", phone: "9876543210", technician: "Nanda", status: "Assigned", priority: "High" },
+          { id: 1003, customer: "Priya Sharma", service: "AC Servicing", location: "Indiranagar, Bengaluru", phone: "9123456780", technician: "Ravi Kumar", status: "In Progress", priority: "Normal" },
+          { id: 1004, customer: "Suresh Nair", service: "Plumbing Repair", location: "Whitefield, Bengaluru", phone: "9988776655", technician: "Suresh Nair", status: "Completed", priority: "Normal" },
         ];
       }
 
-      setBookings(list);
+      // Deduplicate by customer & id
+      const uniqueList = [];
+      const seenBookingKeys = new Set();
+      list.forEach((b) => {
+        const bKey = `${b.id}-${b.customer}`.toLowerCase();
+        if (!seenBookingKeys.has(bKey)) {
+          seenBookingKeys.add(bKey);
+          uniqueList.push(b);
+        }
+      });
+
+      setBookings(uniqueList);
     } catch (error) {
       console.error("BookingTable fetch error:", error);
     } finally {
@@ -182,7 +212,6 @@ export default function BookingTable() {
         }),
       }).catch(() => {});
 
-      // Immediately update local state
       setBookings((prev) =>
         prev.map((b) =>
           b.id === bookingId
@@ -191,7 +220,6 @@ export default function BookingTable() {
         )
       );
 
-      // Save assignment to localStorage for cross-role persistence
       try {
         const storedAssignments = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         const existingIdx = storedAssignments.findIndex((aj) => String(aj.bookingId) === String(bookingId));
@@ -226,7 +254,6 @@ export default function BookingTable() {
 
   return (
     <div className="rounded-3xl bg-white shadow-lg border border-gray-200 overflow-hidden">
-      {/* Header */}
       <div className="bg-gradient-to-r from-[#08263B] to-[#10364F] px-8 py-7 text-white flex flex-col md:flex-row md:justify-between md:items-center gap-6">
         <div>
           <h2 className="text-3xl font-bold">Dispatcher Bookings</h2>
@@ -241,7 +268,6 @@ export default function BookingTable() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -269,8 +295,8 @@ export default function BookingTable() {
                 </td>
               </tr>
             ) : (
-              bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50 transition font-medium">
+              bookings.map((booking, idx) => (
+                <tr key={`disp-booking-${booking.id || idx}-${idx}`} className="hover:bg-gray-50 transition font-medium">
                   <td className="py-4 px-6 font-bold text-gray-900">#{booking.id}</td>
                   <td className="py-4 px-6 font-bold text-gray-900">{booking.customer}</td>
                   <td className="py-4 px-6 text-gray-700 font-semibold">{booking.service}</td>
