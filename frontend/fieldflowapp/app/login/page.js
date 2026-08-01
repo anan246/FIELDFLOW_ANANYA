@@ -1,23 +1,18 @@
 "use client";
 
+import Image from "next/image";
+import { Wrench, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Wrench } from "lucide-react";
 import { API_BASE_URL } from "@/lib/apiConfig";
 
-export default function LoginPage() {
-  const router = Router();
+export default function Login() {
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  function Router() {
-    return useRouter();
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,7 +35,7 @@ export default function LoginPage() {
       }
     } catch (_) {}
 
-    // Fallback authentication if server error occurs
+    // Resilient fallback authentication if network/server is unavailable
     if (!loggedInUser) {
       const role = email.includes("admin")
         ? "admin"
@@ -69,7 +64,7 @@ export default function LoginPage() {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(loggedInUser));
 
-    // Save registered customer record
+    // Save customer record
     if (loggedInUser.role === "customer") {
       try {
         const list = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
@@ -90,7 +85,7 @@ export default function LoginPage() {
       } catch (_) {}
     }
 
-    // Save registered technician record
+    // Save technician record
     if (loggedInUser.role === "technician") {
       try {
         const tList = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
@@ -116,117 +111,137 @@ export default function LoginPage() {
       } catch (_) {}
     }
 
-    // Dispatch real-time events across all role windows
-    window.dispatchEvent(new CustomEvent("fieldflow_customer_registered", { detail: loggedInUser }));
-    window.dispatchEvent(new CustomEvent("fieldflow_technician_registered", { detail: loggedInUser }));
-    window.dispatchEvent(new Event("storage"));
+    try {
+      window.dispatchEvent(new CustomEvent("fieldflow_customer_registered", { detail: loggedInUser }));
+      window.dispatchEvent(new CustomEvent("fieldflow_technician_registered", { detail: loggedInUser }));
+      window.dispatchEvent(new Event("storage"));
+    } catch (_) {}
 
     const role = loggedInUser.role;
     if (role === "admin") router.push("/admin");
+    else if (role === "customer") router.push("/customer/dashboard");
+    else if (role === "technician") router.push("/technician/dashboard");
     else if (role === "dispatcher") router.push("/dispatcher");
-    else if (role === "technician") router.push("/technician/my-jobs");
-    else router.push("/customer/dashboard");
+    else router.push("/");
+
+    setLoading(false);
   }
 
   return (
-    <main className="flex min-h-screen bg-[#F4F6F9]">
-      {/* LEFT BRAND SECTION */}
-      <div className="hidden lg:flex w-1/2 bg-[#14263D] text-white p-12 flex-col justify-between relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF6B00] text-white shadow-md">
-              <Wrench size={20} />
-            </div>
-            <span className="text-2xl font-extrabold tracking-tight">FieldFlow</span>
-          </div>
+    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center px-6 py-10">
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-10 items-center">
 
-          <div className="mt-24 max-w-md">
-            <h1 className="text-4xl font-extrabold leading-tight">
-              Streamlining Field Operations with Real-Time Control
+        <div className="hidden lg:flex flex-col items-center justify-center px-8">
+          <Image
+            src="/images/login-illustration.png"
+            alt="FieldFlow Illustration"
+            width={500}
+            height={500}
+            className="w-full max-w-md"
+          />
+
+          <h2 className="text-4xl font-bold text-[#2D2F39] mt-8 text-center">
+            Trusted Home Services
+          </h2>
+
+          <p className="text-gray-500 text-center mt-4 max-w-md leading-7">
+            Book verified professionals, track your service requests, and manage everything from one secure platform.
+          </p>
+        </div>
+
+        <div className="w-full max-w-md bg-white/90 backdrop-blur rounded-3xl shadow-2xl border border-orange-100 p-8 mx-auto">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="bg-orange-100 p-4 rounded-full">
+                <Wrench className="text-orange-500 w-8 h-8" />
+              </div>
+            </div>
+
+            <h1 className="text-4xl font-extrabold text-[#2D2F39]">
+              Welcome Back
             </h1>
-            <p className="mt-4 text-[#A1B1C7] font-medium text-sm leading-relaxed">
-              Connect customers, dispatchers, technicians, and administrators on a single real-time platform.
-            </p>
-          </div>
-        </div>
 
-        <div className="relative z-10 text-xs text-[#A1B1C7] font-medium">
-          © 2026 FieldFlow Systems. All rights reserved.
-        </div>
-
-        <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-[#FF6B00]/10 blur-3xl" />
-      </div>
-
-      {/* RIGHT FORM SECTION */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8 bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-100">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-[#14263D]">Welcome Back</h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500 font-medium">
-              Sign in to your <strong className="text-[#FF6B00]">FieldFlow</strong> account and manage your home services with ease.
+            <p className="mt-3 text-gray-500 leading-relaxed">
+              Sign in to your <span className="font-semibold text-orange-500">FieldFlow</span> account
+              <br />
+              and manage your home services with ease.
             </p>
           </div>
 
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-600 font-semibold text-center">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
-              <label className="block text-xs font-bold text-[#14263D] mb-1.5">Email</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                Email
+              </label>
+
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#FF6B00] focus:bg-white transition"
+                placeholder="Enter your Email"
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#14263D] mb-1.5">Password</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                Password
+              </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-3 pr-10 text-xs sm:text-sm text-slate-900 font-medium outline-none focus:border-[#FF6B00] focus:bg-white transition"
+                  placeholder="Enter your password"
+                  className="w-full rounded-2xl border border-gray-300 px-4 py-3 pr-12 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-500 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
-              <Link href="/forgot-password" className="text-xs font-bold text-[#FF6B00] hover:underline">
+            {error && (
+              <p className="text-red-500 text-sm text-center bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                {error}
+              </p>
+            )}
+
+            <div className="flex justify-end">
+              <a
+                href="/forget-password"
+                className="text-sm text-orange-500 hover:text-orange-600 hover:underline font-medium transition"
+              >
                 Forgot Password?
-              </Link>
+              </a>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#FF6B00] py-3.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-500/20 transition hover:bg-orange-600 disabled:opacity-50 cursor-pointer"
+              className="w-full bg-orange-500 hover:bg-orange-600 active:scale-[0.98] transition-all text-white py-3 rounded-2xl font-semibold shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
+              {loading && <Loader2 className="w-5 h-5 animate-spin" />}
               {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-500 font-medium">
+          <p className="mt-8 text-center text-gray-500">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-bold text-[#FF6B00] hover:underline">
+            <a
+              href="/register"
+              className="font-semibold text-orange-500 hover:underline"
+            >
               Create one
-            </Link>
+            </a>
           </p>
         </div>
       </div>
