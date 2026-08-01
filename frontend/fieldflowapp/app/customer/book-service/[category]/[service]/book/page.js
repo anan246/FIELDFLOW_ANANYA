@@ -221,9 +221,18 @@ export default function BookServicePage({ params }) {
        * Save booking locally temporarily
        * for confirmation page.
        */
+      let userName = "Customer";
+      try {
+        const u = JSON.parse(localStorage.getItem("user") || "{}");
+        if (u.name) userName = u.name;
+      } catch (_) {}
+
       const booking = {
         id: backendBooking.id,
+        customerName: userName,
+        customer_name: userName,
         service: selectedService.title,
+        service_name: selectedService.title,
         category: selectedService.category,
         service_id: Number(service),
         price: selectedService.price,
@@ -235,6 +244,7 @@ export default function BookServicePage({ params }) {
         phone,
         notes,
         status: backendBooking.status,
+        created_at: new Date().toISOString(),
       };
 
       localStorage.setItem(
@@ -242,10 +252,6 @@ export default function BookServicePage({ params }) {
         JSON.stringify(booking)
       );
 
-      /*
-       * Keep a local copy for the existing
-       * frontend bookings page.
-       */
       const existingBookings = JSON.parse(
         localStorage.getItem("fieldflow_bookings") || "[]"
       );
@@ -257,6 +263,23 @@ export default function BookServicePage({ params }) {
           ...existingBookings,
         ])
       );
+
+      const existingCustomerBookings = JSON.parse(
+        localStorage.getItem("customer_bookings") || "[]"
+      );
+
+      localStorage.setItem(
+        "customer_bookings",
+        JSON.stringify([
+          booking,
+          ...existingCustomerBookings,
+        ])
+      );
+
+      try {
+        window.dispatchEvent(new CustomEvent("fieldflow_booking_created", { detail: booking }));
+        window.dispatchEvent(new Event("storage"));
+      } catch (_) {}
 
       /*
        * Create notification through backend.
