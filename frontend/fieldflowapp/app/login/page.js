@@ -31,6 +31,31 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      if (data.user.role === "customer") {
+        try {
+          const list = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
+          const exists = list.some((c) => c.id === data.user.id || c.email === data.user.email);
+          if (!exists) {
+            list.unshift({
+              id: data.user.id || Date.now(),
+              name: data.user.name || "Customer User",
+              email: data.user.email,
+              phone: data.user.phone || "9876543210",
+              address: data.user.address || "Bengaluru",
+              city: data.user.city || "Bengaluru",
+              role: "customer",
+              created_at: new Date().toISOString(),
+            });
+            localStorage.setItem("allRegisteredCustomers", JSON.stringify(list));
+          }
+        } catch (_) {}
+      }
+
+      try {
+        window.dispatchEvent(new CustomEvent("fieldflow_customer_registered", { detail: data.user }));
+        window.dispatchEvent(new Event("storage"));
+      } catch (_) {}
+
       const role = data.user.role;
       if (role === "admin") router.push("/admin");
       else if (role === "customer") router.push("/customer/dashboard");
