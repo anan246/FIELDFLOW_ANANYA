@@ -12,21 +12,20 @@ const ROLE_COLORS = {
   admin: "bg-[#111F36] text-white font-bold",
 };
 
-const ROLE_ICONS = {
-  customer: User,
-  technician: ShieldCheck,
-  dispatcher: Filter,
-  admin: ShieldCheck,
-};
+function formatDateSafe(dateStr) {
+  if (!dateStr) return "01/08/2026";
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? "01/08/2026" : d.toLocaleDateString("en-IN");
+}
 
 const MOCK_USERS = [
-  { id: 1, name: "Priya Sharma", email: "priya@mail.com", phone: "9876543210", city: "Bengaluru", role: "customer", created_at: new Date().toISOString() },
-  { id: 2, name: "Ravi Kumar", email: "ravi@fieldflow.in", phone: "9123456780", city: "Bengaluru", role: "technician", created_at: new Date().toISOString() },
-  { id: 3, name: "Nanda", email: "nanda@fieldflow.in", phone: "9876543210", city: "Bengaluru", role: "technician", created_at: new Date().toISOString() },
-  { id: 4, name: "Suresh Nair", email: "suresh@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "technician", created_at: new Date().toISOString() },
-  { id: 5, name: "Ananya L S", email: "ananya@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "admin", created_at: new Date().toISOString() },
-  { id: 6, name: "Meera Tiwari", email: "meera@fieldflow.in", phone: "9871234560", city: "Delhi", role: "dispatcher", created_at: new Date().toISOString() },
-  { id: 7, name: "Rahul Sharma", email: "rahul@mail.com", phone: "9765432100", city: "Bengaluru", role: "customer", created_at: new Date().toISOString() },
+  { id: 1, name: "Priya Sharma", email: "priya@mail.com", phone: "9876543210", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 2, name: "Ravi Kumar", email: "ravi@fieldflow.in", phone: "9123456780", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 3, name: "Nanda", email: "nanda@fieldflow.in", phone: "9876543210", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 4, name: "Suresh Nair", email: "suresh@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "technician", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 5, name: "Ananya L S", email: "ananya@fieldflow.in", phone: "9988776655", city: "Bengaluru", role: "admin", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 6, name: "Meera Tiwari", email: "meera@fieldflow.in", phone: "9871234560", city: "Delhi", role: "dispatcher", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 7, name: "Rahul Sharma", email: "rahul@mail.com", phone: "9765432100", city: "Bengaluru", role: "customer", created_at: "2026-08-01T00:00:00.000Z" },
 ];
 
 const ROLES = ["all", "customer", "technician", "dispatcher", "admin"];
@@ -64,7 +63,7 @@ function UserModal({ user, onClose, onDelete }) {
               { icon: Mail, label: "Email", value: user.email },
               { icon: Phone, label: "Phone", value: user.phone || "9876543210" },
               { icon: MapPin, label: "City / Location", value: user.city || user.address || "Bengaluru" },
-              { icon: Calendar, label: "Joined Date", value: new Date(user.created_at || Date.now()).toLocaleDateString("en-IN") },
+              { icon: Calendar, label: "Joined Date", value: formatDateSafe(user.created_at) },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
                 <Icon size={16} className="text-orange-500 shrink-0" />
@@ -130,7 +129,6 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     let list = [];
 
-    // 1. Fetch from Admin Users API
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/users`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
@@ -142,7 +140,6 @@ export default function UsersPage() {
       }
     } catch (_) {}
 
-    // 2. Merge registered customers from localStorage
     try {
       const localCustomers = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
       localCustomers.forEach((c) => {
@@ -152,7 +149,6 @@ export default function UsersPage() {
       });
     } catch (_) {}
 
-    // 3. Merge registered technicians from localStorage
     try {
       const localTechs = JSON.parse(localStorage.getItem("allRegisteredTechnicians") || "[]");
       localTechs.forEach((t) => {
@@ -162,7 +158,6 @@ export default function UsersPage() {
       });
     } catch (_) {}
 
-    // 4. Merge logged in user
     try {
       const activeUser = JSON.parse(localStorage.getItem("user") || "{}");
       if (activeUser.email && !list.some((u) => u.email === activeUser.email)) {
@@ -341,7 +336,7 @@ export default function UsersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-400 text-xs">
-                        {new Date(u.created_at || Date.now()).toLocaleDateString("en-IN")}
+                        {formatDateSafe(u.created_at)}
                       </td>
                       <td className="px-6 py-4">
                         <button

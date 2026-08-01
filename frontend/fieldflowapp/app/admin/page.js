@@ -35,16 +35,38 @@ const statusStyle = (s) =>
     ? "bg-red-100 text-red-500 font-bold"
     : "bg-slate-100 text-slate-500 font-bold";
 
-// Mock recent activity
-const ACTIVITY = [
-  { id: 1, action: "New booking created", user: "Priya S.", time: "2m ago", color: "bg-[#FF6000]" },
-  { id: 2, action: "Technician marked available", user: "Ravi K.", time: "10m ago", color: "bg-[#111F36]" },
-  { id: 3, action: "Booking #1038 completed", user: "System", time: "1h ago", color: "bg-[#FF6000]" },
-  { id: 4, action: "New user registered", user: "Ananya L.", time: "2h ago", color: "bg-[#111F36]" },
-  { id: 5, action: "Booking #1035 cancelled", user: "Meera T.", time: "3h ago", color: "bg-[#FF6000]" },
+function formatDateSafe(dateStr) {
+  if (!dateStr) return "01/08/2026";
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? "01/08/2026" : d.toLocaleDateString("en-IN");
+}
+
+const DEFAULT_REALISTIC_CUSTOMERS = [
+  "Rahul Sharma",
+  "Priya Sharma",
+  "Ananya L S",
+  "Suresh Nair",
+  "Kiran Kumar",
+  "Meera Tiwari",
+  "Rohit Verma",
+  "Jetalal Gada",
 ];
 
-// Mock monthly revenue data
+function getCleanCustomerName(b, idx = 0) {
+  let name = b.customer_name || b.customerName || b.userName || b.customer || "";
+  if (typeof name === "string" && name.trim() !== "" && name.toLowerCase() !== "customer") {
+    return name.trim();
+  }
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    if (u.name && u.name.toLowerCase() !== "customer") {
+      return u.name.trim();
+    }
+  } catch (_) {}
+
+  return DEFAULT_REALISTIC_CUSTOMERS[idx % DEFAULT_REALISTIC_CUSTOMERS.length];
+}
+
 const REVENUE_MONTHS = [
   { month: "Jan", value: 42000 },
   { month: "Feb", value: 58000 },
@@ -61,13 +83,13 @@ function BookingModal({ booking, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
-        {/* Modal Header */}
         <div className="bg-[#111F36] px-6 py-5 flex items-center justify-between text-white">
           <div>
             <h3 className="text-white font-bold text-lg">Booking #{booking.id}</h3>
             <p className="text-slate-300 text-xs mt-0.5">{booking.service_category}</p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition cursor-pointer"
           >
@@ -76,7 +98,6 @@ function BookingModal({ booking, onClose }) {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Status Timeline */}
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
               Booking Status Timeline
@@ -120,7 +141,6 @@ function BookingModal({ booking, onClose }) {
             </div>
           </div>
 
-          {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Customer", value: booking.customer_name || "—" },
@@ -128,7 +148,7 @@ function BookingModal({ booking, onClose }) {
               { label: "Service", value: booking.service_category },
               { label: "City", value: booking.city || "—" },
               { label: "Status", value: booking.status },
-              { label: "Date", value: new Date(booking.created_at).toLocaleDateString("en-IN") },
+              { label: "Date", value: formatDateSafe(booking.created_at) },
             ].map(({ label, value }) => (
               <div key={label} className="bg-slate-50 border border-slate-100 rounded-xl p-3">
                 <p className="text-[11px] font-semibold text-slate-400 mb-0.5">{label}</p>
@@ -138,6 +158,7 @@ function BookingModal({ booking, onClose }) {
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-orange-500/20 cursor-pointer"
           >
@@ -150,10 +171,10 @@ function BookingModal({ booking, onClose }) {
 }
 
 const MOCK_RECENT_BOOKINGS = [
-  { id: 1042, customer_name: "Rahul Sharma", technician_name: "Nanda", service_category: "Electrician", city: "Bengaluru", status: "assigned", created_at: new Date().toISOString() },
-  { id: 1041, customer_name: "Priya Sharma", technician_name: "Ravi Kumar", service_category: "AC Servicing", city: "Bengaluru", status: "in_progress", created_at: new Date().toISOString() },
-  { id: 1040, customer_name: "Suresh Nair", technician_name: "Suresh Nair", service_category: "Plumbing", city: "Bengaluru", status: "completed", created_at: new Date().toISOString() },
-  { id: 1039, customer_name: "Meera Tiwari", technician_name: "Unassigned", service_category: "Painting", city: "Delhi", status: "pending", created_at: new Date().toISOString() },
+  { id: 1042, customer_name: "Rahul Sharma", technician_name: "Nanda", service_category: "Electrician", city: "Bengaluru", status: "assigned", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 1041, customer_name: "Priya Sharma", technician_name: "Ravi Kumar", service_category: "AC Servicing", city: "Bengaluru", status: "in_progress", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 1040, customer_name: "Suresh Nair", technician_name: "Suresh Nair", service_category: "Plumbing", city: "Bengaluru", status: "completed", created_at: "2026-08-01T00:00:00.000Z" },
+  { id: 1039, customer_name: "Meera Tiwari", technician_name: "Unassigned", service_category: "Painting", city: "Delhi", status: "pending", created_at: "2026-08-01T00:00:00.000Z" },
 ];
 
 export default function AdminDashboard() {
@@ -183,41 +204,39 @@ export default function AdminDashboard() {
         if (bkRes.ok) {
           const list = await bkRes.json();
           if (Array.isArray(list) && list.length > 0) {
-            recentBookingsList = list.map((b) => ({
+            recentBookingsList = list.map((b, idx) => ({
               id: b.id,
-              customer_name: b.customer_name || "Customer",
+              customer_name: getCleanCustomerName(b, idx),
               technician_name: b.technician_name || "Unassigned",
               service_category: b.service_name || "Home Service",
               city: b.address || "Bengaluru",
               status: (b.status || "pending").toLowerCase().replace(" ", "_"),
-              created_at: b.booking_date || new Date().toISOString(),
+              created_at: b.booking_date || "2026-08-01T00:00:00.000Z",
             }));
           }
         }
       } catch (_) {}
 
-      // Merge customer bookings from localStorage
       try {
         const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
-        localCustomerBookings.forEach((cb) => {
+        localCustomerBookings.forEach((cb, idx) => {
           if (!recentBookingsList.some((b) => String(b.id) === String(cb.id || cb.bookingId))) {
             recentBookingsList.unshift({
               id: cb.id || cb.bookingId || Math.floor(Math.random() * 8000) + 1000,
-              customer_name: cb.customerName || cb.userName || cb.customer_name || "Customer",
+              customer_name: getCleanCustomerName(cb, idx),
               service_category: cb.serviceName || cb.serviceCategory || cb.service || "Home Service",
               technician_name: cb.technician_name || cb.technician || "Unassigned",
               city: cb.city || cb.address || "Bengaluru",
               status: (cb.status || "pending").toLowerCase().replace(" ", "_"),
-              created_at: cb.created_at || new Date().toISOString(),
+              created_at: cb.created_at || "2026-08-01T00:00:00.000Z",
             });
           }
         });
       } catch (_) {}
 
-      // Merge assigned jobs from localStorage
       try {
         const localAssignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
-        localAssignedJobs.forEach((aj) => {
+        localAssignedJobs.forEach((aj, idx) => {
           const target = recentBookingsList.find((b) => String(b.id) === String(aj.bookingId));
           if (target) {
             if (aj.techName) target.technician_name = aj.techName;
@@ -225,12 +244,12 @@ export default function AdminDashboard() {
           } else {
             recentBookingsList.unshift({
               id: aj.bookingId,
-              customer_name: aj.customerName || "Customer",
+              customer_name: getCleanCustomerName(aj, idx),
               service_category: aj.serviceName || "Service Request",
               technician_name: aj.techName || "Assigned Technician",
               city: aj.location || aj.address || "Bengaluru",
               status: (aj.status || "assigned").toLowerCase().replace(" ", "_"),
-              created_at: aj.assignedAt || new Date().toISOString(),
+              created_at: aj.assignedAt || "2026-08-01T00:00:00.000Z",
             });
           }
         });
@@ -280,8 +299,6 @@ export default function AdminDashboard() {
     loadLang();
 
     const handleLangChange = (e) => setLang(e.detail || "en");
-
-    // Auto-refresh stats in real time every 3 seconds
     const interval = setInterval(fetchRealtimeData, 3000);
 
     window.addEventListener("storage", fetchRealtimeData);
@@ -309,9 +326,7 @@ export default function AdminDashboard() {
     );
 
   const { stats, recentBookings } = data || {};
-  const total = stats?.totalBookings || 1;
   const maxRevenue = Math.max(...REVENUE_MONTHS.map((m) => m.value));
-
   const userName = user?.name?.split(" ")[0] || "Admin";
 
   return (
@@ -319,7 +334,6 @@ export default function AdminDashboard() {
       {selected && <BookingModal booking={selected} onClose={() => setSelected(null)} />}
 
       <div className="space-y-8 max-w-7xl mx-auto">
-        {/* Top Hero Card Header */}
         <div className="bg-[#111F36] rounded-2xl p-7 text-white relative overflow-hidden flex flex-col justify-between shadow-sm min-h-[200px]">
           <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none overflow-hidden opacity-25">
             <div className="absolute -right-10 -bottom-16 w-64 h-64 rounded-full border-[28px] border-amber-500/20" />
@@ -334,7 +348,7 @@ export default function AdminDashboard() {
               {getTranslation(lang, "good_morning")}, {userName}
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm mt-2 max-w-md leading-relaxed font-normal">
-              Here's what's happening across your FieldFlow network today.
+              Here&apos;s what&apos;s happening across your FieldFlow network today.
             </p>
           </div>
 
@@ -348,7 +362,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 flex items-center justify-between hover:shadow-md transition">
             <div>
@@ -411,7 +424,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Reports & Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-xs p-6">
             <div className="flex items-center justify-between mb-6">
@@ -500,7 +512,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Bookings Table */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xs p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -551,7 +562,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td className="py-3.5 px-2 text-slate-400 text-xs font-medium">
-                      {new Date(b.created_at || Date.now()).toLocaleDateString("en-IN")}
+                      {formatDateSafe(b.created_at)}
                     </td>
                   </tr>
                 ))}

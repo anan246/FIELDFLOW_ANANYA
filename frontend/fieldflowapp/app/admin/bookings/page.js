@@ -27,6 +27,12 @@ const DEFAULT_REALISTIC_CUSTOMERS = [
   "Jetalal Gada",
 ];
 
+function formatDateSafe(dateStr) {
+  if (!dateStr) return "01/08/2026";
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? "01/08/2026" : d.toLocaleDateString("en-IN");
+}
+
 function getCleanCustomerName(b, idx = 0) {
   let name = b.customer_name || b.customerName || b.userName || b.customer || "";
   if (typeof name === "string" && name.trim() !== "" && name.toLowerCase() !== "customer") {
@@ -43,11 +49,11 @@ function getCleanCustomerName(b, idx = 0) {
 }
 
 const MOCK_REAL_BOOKINGS = [
-  { id: 1001, customer_name: "Rahul Sharma", service_category: "Electrical Repair", technician_name: "Nanda", city: "Bengaluru", status: "assigned", created_at: new Date().toISOString(), address: "MG Road, Bengaluru" },
-  { id: 1002, customer_name: "Priya Sharma", service_category: "AC Servicing", technician_name: "Ravi Kumar", city: "Bengaluru", status: "in_progress", created_at: new Date().toISOString(), address: "Indiranagar, Bengaluru" },
-  { id: 1003, customer_name: "Suresh Nair", service_category: "Plumbing Repair", technician_name: "Suresh Nair", city: "Bengaluru", status: "completed", created_at: new Date().toISOString(), address: "Whitefield, Bengaluru" },
-  { id: 1004, customer_name: "Meera Tiwari", service_category: "Home Painting", technician_name: "Unassigned", city: "Delhi", status: "pending", created_at: new Date().toISOString(), address: "7 Connaught Place" },
-  { id: 1005, customer_name: "Jetalal Gada", service_category: "Electronics Repair", technician_name: "Ravi Kumar", city: "Mumbai", status: "assigned", created_at: new Date().toISOString(), address: "Powai, Mumbai" },
+  { id: 1001, customer_name: "Rahul Sharma", service_category: "Electrical Repair", technician_name: "Nanda", city: "Bengaluru", status: "assigned", created_at: "2026-08-01T00:00:00.000Z", address: "MG Road, Bengaluru" },
+  { id: 1002, customer_name: "Priya Sharma", service_category: "AC Servicing", technician_name: "Ravi Kumar", city: "Bengaluru", status: "in_progress", created_at: "2026-08-01T00:00:00.000Z", address: "Indiranagar, Bengaluru" },
+  { id: 1003, customer_name: "Suresh Nair", service_category: "Plumbing Repair", technician_name: "Suresh Nair", city: "Bengaluru", status: "completed", created_at: "2026-08-01T00:00:00.000Z", address: "Whitefield, Bengaluru" },
+  { id: 1004, customer_name: "Meera Tiwari", service_category: "Home Painting", technician_name: "Unassigned", city: "Delhi", status: "pending", created_at: "2026-08-01T00:00:00.000Z", address: "7 Connaught Place" },
+  { id: 1005, customer_name: "Jetalal Gada", service_category: "Electronics Repair", technician_name: "Ravi Kumar", city: "Mumbai", status: "assigned", created_at: "2026-08-01T00:00:00.000Z", address: "Powai, Mumbai" },
 ];
 
 function BookingModal({ booking, onClose, onStatusChange }) {
@@ -112,7 +118,7 @@ function BookingModal({ booking, onClose, onStatusChange }) {
               { icon: ClipboardList, label: "Service", value: booking.service_category },
               { icon: MapPin, label: "Location", value: booking.city || "Bengaluru" },
               { icon: Phone, label: "Customer Contact", value: booking.phone || "9876543210" },
-              { icon: Calendar, label: "Date", value: new Date(booking.created_at || Date.now()).toLocaleDateString("en-IN") },
+              { icon: Calendar, label: "Date", value: formatDateSafe(booking.created_at) },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-start gap-2">
                 <Icon size={14} className="text-orange-500 mt-0.5 shrink-0" />
@@ -208,7 +214,7 @@ export default function BookingsPage() {
             technician_name: b.technician_name || "Unassigned",
             city: b.city || b.address || "Bengaluru",
             status: (b.status || "pending").toLowerCase().replaceAll(" ", "_"),
-            created_at: b.created_at || b.booking_date || new Date().toISOString(),
+            created_at: b.created_at || b.booking_date || "2026-08-01T00:00:00.000Z",
             address: b.address || "Bengaluru",
           }));
         }
@@ -229,7 +235,7 @@ export default function BookingsPage() {
               technician_name: b.technician_name || "Unassigned",
               city: b.address || "Bengaluru",
               status: (b.status || "pending").toLowerCase().replaceAll(" ", "_"),
-              created_at: b.booking_date || new Date().toISOString(),
+              created_at: b.booking_date || "2026-08-01T00:00:00.000Z",
               address: b.address || "Bengaluru",
             }));
           }
@@ -251,7 +257,7 @@ export default function BookingsPage() {
             technician_name: cb.technician_name || cb.technician || "Unassigned",
             city: cb.city || cb.address || "Bengaluru",
             status: (cb.status || "pending").toLowerCase().replaceAll(" ", "_"),
-            created_at: cb.created_at || new Date().toISOString(),
+            created_at: cb.created_at || "2026-08-01T00:00:00.000Z",
             address: cb.address || "Bengaluru",
           });
         } else {
@@ -260,7 +266,7 @@ export default function BookingsPage() {
       });
     } catch (_) {}
 
-    // 4. Merge Assigned Jobs (assigned by Dispatchers to Technicians)
+    // 4. Merge Assigned Jobs
     try {
       const localAssignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
       localAssignedJobs.forEach((aj, idx) => {
@@ -276,7 +282,7 @@ export default function BookingsPage() {
             technician_name: aj.techName || "Assigned Technician",
             city: aj.location || aj.address || "Bengaluru",
             status: (aj.status || "assigned").toLowerCase().replaceAll(" ", "_"),
-            created_at: aj.assignedAt || new Date().toISOString(),
+            created_at: aj.assignedAt || "2026-08-01T00:00:00.000Z",
             address: aj.location || "Bengaluru",
           });
         }
@@ -485,7 +491,7 @@ export default function BookingsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-400 text-xs">
-                        {new Date(b.created_at || Date.now()).toLocaleDateString("en-IN")}
+                        {formatDateSafe(b.created_at)}
                       </td>
                     </tr>
                   ))
