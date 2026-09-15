@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 import { API_BASE_URL } from "@/lib/apiConfig";
+import { getGlobalSearchQuery, subscribeRealtimeEvents } from "@/lib/realtimeStore";
 
 const MOCK_PREVIEW_JOBS = [
   {
@@ -27,30 +28,30 @@ const MOCK_PREVIEW_JOBS = [
 export default function AssignedJobsPreview() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchPreviewJobs();
-    const interval = setInterval(fetchPreviewJobs, 3000);
+    setSearch(getGlobalSearchQuery("technician"));
 
-    const handleJobChange = () => fetchPreviewJobs();
-    window.addEventListener("storage", handleJobChange);
-    window.addEventListener("focus", handleJobChange);
-    window.addEventListener("fieldflow_job_assigned", handleJobChange);
-    window.addEventListener("fieldflow_job_status_change", handleJobChange);
+    const interval = setInterval(fetchPreviewJobs, 3000);
+    const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+      fetchPreviewJobs();
+      if (type === "fieldflow_search_update" && (payload.role === "technician" || payload.role === "global")) {
+        setSearch(payload.query || "");
+      }
+    });
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", handleJobChange);
-      window.removeEventListener("focus", handleJobChange);
-      window.removeEventListener("fieldflow_job_assigned", handleJobChange);
-      window.removeEventListener("fieldflow_job_status_change", handleJobChange);
+      unsubscribe();
     };
   }, []);
 
   const fetchPreviewJobs = async () => {
     try {
       const activeUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const techName = activeUser.name?.toLowerCase() || "";
+      const techName = activeUser.role === "technician" ? activeUser.name?.toLowerCase() || "" : "";
 
       let list = [];
       try {
@@ -100,7 +101,7 @@ export default function AssignedJobsPreview() {
 
       if (list.length === 0) list = MOCK_PREVIEW_JOBS;
 
-      setJobs(list.slice(0, 3));
+      setJobs(list);
     } catch (err) {
       console.error(err);
       setJobs(MOCK_PREVIEW_JOBS);
@@ -108,6 +109,18 @@ export default function AssignedJobsPreview() {
       setLoading(false);
     }
   };
+
+  const filteredJobs = jobs.filter((job) => {
+    const q = search.toLowerCase();
+    return (
+      !q ||
+      (job.customer || "").toLowerCase().includes(q) ||
+      (job.service || "").toLowerCase().includes(q) ||
+      (job.location || "").toLowerCase().includes(q) ||
+      String(job.id).includes(q)
+    );
+  });
+
 
   const statusColors = {
     Assigned: "bg-orange-100 text-orange-700 font-bold",
@@ -138,7 +151,7 @@ export default function AssignedJobsPreview() {
         {loading ? (
           <div className="py-6 text-center text-xs text-slate-500 font-medium">Loading live jobs...</div>
         ) : (
-          jobs.map((job) => (
+          filteredJobs.slice(0, 5).map((job) => (
             <div
               key={job.id}
               className="bg-slate-50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-slate-100 hover:border-slate-200 transition"

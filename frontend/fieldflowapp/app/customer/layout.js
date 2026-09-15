@@ -38,7 +38,12 @@ export default function CustomerLayout({ children }) {
     try {
       const stored = localStorage.getItem("user");
       if (stored) {
-        setUser(JSON.parse(stored));
+        const u = JSON.parse(stored);
+        if (u.role && u.role !== "customer") {
+          router.replace(`/${u.role}`);
+          return;
+        }
+        setUser(u);
       }
     } catch (_) {}
   }, []);
@@ -160,22 +165,7 @@ export default function CustomerLayout({ children }) {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Search Bar */}
-          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-slate-200/80 rounded-xl px-4 py-2.5 flex-1 max-w-md ml-2 lg:ml-0">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search services..."
-              className="bg-transparent text-sm text-slate-800 outline-none w-full placeholder:text-slate-400"
-              suppressHydrationWarning
-            />
-            {search && (
-              <button onClick={() => setSearch("")}>
-                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
-              </button>
-            )}
-          </div>
+          <div className="flex-1" />
 
           {/* Header Right Actions */}
           <div className="flex items-center gap-3">

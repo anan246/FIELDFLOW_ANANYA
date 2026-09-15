@@ -57,13 +57,6 @@ function getCleanCustomerName(b, idx = 0) {
   if (typeof name === "string" && name.trim() !== "" && name.toLowerCase() !== "customer") {
     return name.trim();
   }
-  try {
-    const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (u.name && u.name.toLowerCase() !== "customer") {
-      return u.name.trim();
-    }
-  } catch (_) {}
-
   return DEFAULT_REALISTIC_CUSTOMERS[idx % DEFAULT_REALISTIC_CUSTOMERS.length];
 }
 
@@ -315,35 +308,41 @@ export default function AdminDashboard() {
   };
 
   const [lang, setLang] = useState("en");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setUser(JSON.parse(localStorage.getItem("user") || "{}"));
     fetchRealtimeData();
 
-    function loadLang() {
-      try {
-        setLang(localStorage.getItem("fieldflow_language") || "en");
-      } catch (_) {}
+    if (typeof window !== "undefined") {
+      const { getGlobalSearchQuery, subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      setSearch(getGlobalSearchQuery("admin"));
+
+      const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+        fetchRealtimeData();
+        if (type === "fieldflow_search_update" && (payload.role === "admin" || payload.role === "global")) {
+          setSearch(payload.query || "");
+        }
+      });
+
+      function loadLang() {
+        try {
+          setLang(localStorage.getItem("fieldflow_language") || "en");
+        } catch (_) {}
+      }
+      loadLang();
+
+      const handleLangChange = (e) => setLang(e.detail || "en");
+      const interval = setInterval(fetchRealtimeData, 3000);
+
+      window.addEventListener("fieldflow_language_change", handleLangChange);
+
+      return () => {
+        clearInterval(interval);
+        unsubscribe();
+        window.removeEventListener("fieldflow_language_change", handleLangChange);
+      };
     }
-    loadLang();
-
-    const handleLangChange = (e) => setLang(e.detail || "en");
-    const interval = setInterval(fetchRealtimeData, 3000);
-
-    window.addEventListener("storage", fetchRealtimeData);
-    window.addEventListener("storage", loadLang);
-    window.addEventListener("focus", fetchRealtimeData);
-    window.addEventListener("fieldflow_customer_registered", fetchRealtimeData);
-    window.addEventListener("fieldflow_language_change", handleLangChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("storage", fetchRealtimeData);
-      window.removeEventListener("storage", loadLang);
-      window.removeEventListener("focus", fetchRealtimeData);
-      window.removeEventListener("fieldflow_customer_registered", fetchRealtimeData);
-      window.removeEventListener("fieldflow_language_change", handleLangChange);
-    };
   }, []);
 
   if (loading)
@@ -359,6 +358,19 @@ export default function AdminDashboard() {
   const { stats, recentBookings } = data || {};
   const maxRevenue = Math.max(...REVENUE_MONTHS.map((m) => m.value));
   const userName = user?.name?.split(" ")[0] || "Admin";
+
+  const filteredBookings = (recentBookings || []).filter((b) => {
+    const q = (search || "").toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (b.customer_name || "").toLowerCase().includes(q) ||
+      (b.service_category || "").toLowerCase().includes(q) ||
+      (b.technician_name || "").toLowerCase().includes(q) ||
+      (b.city || b.address || "").toLowerCase().includes(q) ||
+      (b.status || "").toLowerCase().includes(q) ||
+      String(b.id || "").includes(q)
+    );
+  });
 
   return (
     <>
@@ -563,7 +575,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentBookings?.map((b, idx) => (
+                {filteredBookings.map((b, idx) => (
                   <tr
                     key={`admin-dashboard-row-${b.id || idx}-${idx}`}
                     onClick={() => setSelected(b)}

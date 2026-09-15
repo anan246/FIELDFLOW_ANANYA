@@ -6,8 +6,8 @@ import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function AdminProfilePage() {
   const [user, setUser] = useState({
-    name: "System Administrator",
-    email: "admin@fieldflow.in",
+    name: "Ananya L S",
+    email: "ananya@fieldflow.com",
     phone: "9900011223",
     role: "admin",
     created_at: new Date().toISOString(),
@@ -17,8 +17,8 @@ export default function AdminProfilePage() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "{}");
-      if (stored.name || stored.email) {
-        setUser((prev) => ({ ...prev, ...stored }));
+      if (stored.role === "admin") {
+        setUser((prev) => ({ ...prev, ...stored, name: "Ananya L S" }));
       }
     } catch {}
 

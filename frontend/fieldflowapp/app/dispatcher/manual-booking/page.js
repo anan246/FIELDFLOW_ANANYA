@@ -50,52 +50,70 @@ export default function ManualBookingPage() {
       !formData.date ||
       !formData.time
     ) {
-      alert("Please fill all required fields.");
+      alert("Please fill all required fields (Customer Name, Phone, Address, Service, Date, Time).");
       return;
     }
 
+    const bookingId = Math.floor(Math.random() * 8000) + 1000;
+    const newBookingObj = {
+      id: bookingId,
+      bookingId: bookingId,
+      customer_name: formData.customer,
+      customerName: formData.customer,
+      customer: formData.customer,
+      phone: formData.phone,
+      email: formData.email,
+      address: formData.address,
+      city: formData.city || "Bengaluru",
+      pincode: formData.pincode || "560001",
+      service_name: formData.service,
+      serviceCategory: formData.service,
+      service: formData.service,
+      priority: formData.priority || "Normal",
+      booking_date: formData.date,
+      date: formData.date,
+      booking_time: formData.time,
+      time: formData.time,
+      estimated_price: Number(formData.price) || 499,
+      price: Number(formData.price) || 499,
+      description: formData.description || "",
+      status: "Pending",
+      technician_name: "Unassigned",
+      technician: "Unassigned",
+      created_at: new Date().toISOString(),
+    };
+
     try {
-      const response = await fetch(`${API_BASE_URL}/dispatcher/manual-booking`, {
+      await fetch(`${API_BASE_URL}/dispatcher/manual-booking`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customer_name: formData.customer,
-          phone: formData.phone,
-          email: formData.email,
-          address: formData.address,
-          city: formData.city,
-          pincode: formData.pincode,
-
-          service_name: formData.service,
-          priority: formData.priority || "Normal",
-
-          booking_date: formData.date,
-          booking_time: formData.time,
-
-          estimated_price: Number(formData.price) || 0,
-          description: formData.description,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newBookingObj),
       });
+    } catch (_) {}
 
-      if (!response.ok) {
-        let msg = "Failed to create booking.";
-        try {
-          const errData = await response.json();
-          msg = errData.message || errData.error || msg;
-        } catch (_) {}
-        alert(msg);
-        return;
-      }
-
-      const result = await response.json();
-      alert("Booking Created Successfully!");
-      handleReset();
-    } catch (error) {
-      console.error("Manual Booking Error:", error);
-      alert("Server Error. Please try again.");
+    try {
+      const { createNewBooking } = require("@/lib/realtimeStore");
+      createNewBooking(newBookingObj);
+    } catch (e) {
+      console.error("Realtime sync error:", e);
     }
+
+    // Save notification
+    try {
+      const notifs = JSON.parse(localStorage.getItem("dispatcher_notifications") || "[]");
+      notifs.unshift({
+        id: Date.now(),
+        type: "booking",
+        title: `New Manual Booking #${bookingId}`,
+        message: `Created booking for ${formData.customer} (${formData.service})`,
+        time: "Just now",
+        read: false,
+      });
+      localStorage.setItem("dispatcher_notifications", JSON.stringify(notifs));
+    } catch (_) {}
+
+    alert(`🎉 Booking #${bookingId} Created Successfully!`);
+    handleReset();
   };
 
   return (

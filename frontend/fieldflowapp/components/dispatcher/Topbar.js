@@ -1,24 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Bell, Calendar, Menu, User } from "lucide-react";
+import { Search, Bell, Calendar, Menu, User, X } from "lucide-react";
+import { setGlobalSearchQuery, getGlobalSearchQuery, subscribeRealtimeEvents } from "@/lib/realtimeStore";
 
 export default function Topbar({ onMenuClick }) {
   const [userName, setUserName] = useState("Dispatcher");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     try {
       const u = JSON.parse(localStorage.getItem("user") || "{}");
       if (u.name) setUserName(u.name);
     } catch (_) {}
+    setSearch(getGlobalSearchQuery("dispatcher"));
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+      if (type === "fieldflow_search_update" && (payload.role === "dispatcher" || payload.role === "global")) {
+        setSearch(payload.query || "");
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    setGlobalSearchQuery(val, "dispatcher");
+  };
+
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header suppressHydrationWarning className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       <div className="flex items-center justify-between gap-4 px-4 md:px-8 py-3.5 sm:py-5">
         {/* Mobile Hamburger Button */}
         <button
           type="button"
+          suppressHydrationWarning
           onClick={onMenuClick}
           className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition shrink-0"
           aria-label="Toggle menu"
@@ -26,15 +44,7 @@ export default function Topbar({ onMenuClick }) {
           <Menu size={20} />
         </button>
 
-        {/* Search Input */}
-        <div className="relative flex-1 max-w-xl">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search bookings, technicians..."
-            className="w-full bg-slate-100 rounded-xl py-2.5 sm:py-3 pl-10 sm:pl-11 pr-4 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-orange-500 transition"
-          />
-        </div>
+        <div className="flex-1" />
 
         {/* Right Info */}
         <div className="flex items-center gap-3 sm:gap-6 shrink-0">
@@ -46,6 +56,7 @@ export default function Topbar({ onMenuClick }) {
           <div className="relative">
             <button
               type="button"
+              suppressHydrationWarning
               className="p-2 rounded-xl hover:bg-slate-100 transition text-slate-600 relative"
               aria-label="Notifications"
             >
@@ -54,7 +65,7 @@ export default function Topbar({ onMenuClick }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3" suppressHydrationWarning>
             <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-md shadow-orange-500/20 shrink-0">
               {userName.charAt(0).toUpperCase() || <User size={18} />}
             </div>

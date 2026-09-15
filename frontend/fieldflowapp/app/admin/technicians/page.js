@@ -177,21 +177,19 @@ export default function TechniciansPage() {
 
   useEffect(() => {
     fetchTechs();
-    const interval = setInterval(fetchTechs, 3000);
+    if (typeof window !== "undefined") {
+      const { getGlobalSearchQuery, subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      setSearch(getGlobalSearchQuery("admin"));
 
-    const handleSync = () => fetchTechs();
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("fieldflow_technician_registered", handleSync);
-    window.addEventListener("fieldflow_job_assigned", handleSync);
+      const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+        fetchTechs();
+        if (type === "fieldflow_search_update" && (payload.role === "admin" || payload.role === "global")) {
+          setSearch(payload.query || "");
+        }
+      });
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("fieldflow_technician_registered", handleSync);
-      window.removeEventListener("fieldflow_job_assigned", handleSync);
-    };
+      return () => unsubscribe();
+    }
   }, []);
 
   async function toggleAvailability(id, current) {
@@ -205,9 +203,16 @@ export default function TechniciansPage() {
   }
 
   const filtered = techs.filter((t) => {
+    const q = search.toLowerCase().trim();
     const matchSearch =
-      t.name?.toLowerCase().includes(search.toLowerCase()) ||
-      t.working_area?.toLowerCase().includes(search.toLowerCase());
+      !q ||
+      t.name?.toLowerCase().includes(q) ||
+      t.category?.toLowerCase().includes(q) ||
+      t.specialization?.toLowerCase().includes(q) ||
+      t.working_area?.toLowerCase().includes(q) ||
+      t.phone?.toLowerCase().includes(q) ||
+      t.email?.toLowerCase().includes(q) ||
+      t.status?.toLowerCase().includes(q);
     const matchCat = category === "All" || t.category === category;
     const matchAvail =
       filterAvail === "all" || (filterAvail === "available" ? t.available_today : !t.available_today);

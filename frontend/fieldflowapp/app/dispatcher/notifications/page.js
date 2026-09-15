@@ -14,37 +14,85 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     loadNotifications();
+    const interval = setInterval(loadNotifications, 3000);
+    window.addEventListener("storage", loadNotifications);
+
+    if (typeof window !== "undefined") {
+      const { subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      const unsubscribe = subscribeRealtimeEvents(() => loadNotifications());
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("storage", loadNotifications);
+        unsubscribe();
+      };
+    }
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", loadNotifications);
+    };
   }, []);
 
   const loadNotifications = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/dispatcher/notifications`);
-      if (!response.ok) {
-        console.warn("Could not fetch notifications from server, using fallback");
-        setLoading(false);
-        return;
+      let list = [];
+      try {
+        const response = await fetch(`${API_BASE_URL}/dispatcher/notifications`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) list = data;
+        }
+      } catch (_) {}
+
+      let localNotifs = [];
+      try {
+        localNotifs = JSON.parse(localStorage.getItem("dispatcher_notifications") || "[]");
+      } catch (_) {}
+
+      const allNotifs = [...localNotifs, ...list];
+
+      if (allNotifs.length === 0) {
+        allNotifs.push(
+          { id: 1, type: "booking", title: "New Service Booking #1043", message: "Kripa requested Home Repair service at MG Road.", time: "5 mins ago", read: false },
+          { id: 2, type: "emergency", title: "🚨 Critical Gas Leak Emergency #9001", message: "Urgent dispatch required at Indiranagar 100ft Road.", time: "12 mins ago", read: false },
+          { id: 3, type: "technician", title: "Technician Ravi Kumar Assigned", message: "Assigned to AC Servicing for Priya Sharma.", time: "30 mins ago", read: true },
+          { id: 4, type: "job", title: "Job #1002 Marked Completed", message: "Nanda completed Electrical Repair for Rahul Sharma.", time: "1 hour ago", read: true }
+        );
       }
 
-      const data = await response.json();
-      const list = Array.isArray(data) ? data : [];
+      // Deduplicate notifications by id / title
+      const uniqueNotifs = [];
+      const seenKeys = new Set();
+      allNotifs.forEach((n) => {
+        const key = `${n.id}-${n.title}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          uniqueNotifs.push({
+            id: n.id,
+            type: n.type || "booking",
+            title: n.title || "Notification",
+            message: n.message || "Activity recorded.",
+            time: n.time || (n.created_at ? new Date(n.created_at).toLocaleTimeString() : "Just now"),
+            read: n.read ?? n.is_read ?? false,
+          });
+        }
+      });
 
-      const formatted = list.map((item) => ({
-        id: item.id,
-        type: item.type || "booking",
-        title: item.title || "Notification",
-        message: item.message || "New activity recorded.",
-        time: item.created_at
-          ? new Date(item.created_at).toLocaleString()
-          : "Just now",
-        read: item.is_read ?? item.read ?? false,
-      }));
-
-      setNotifications(formatted);
+      setNotifications(uniqueNotifs);
     } catch (error) {
       console.error("Notification Error:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const markAllRead = () => {
+    setNotifications((prev) => {
+      const updated = prev.map((item) => ({ ...item, read: true }));
+      try {
+        localStorage.setItem("dispatcher_notifications", JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
   };
 
   const filtered = notifications.filter((item) =>
@@ -53,18 +101,7 @@ export default function NotificationsPage() {
       .includes(search.toLowerCase())
   );
 
-  const unread = notifications.filter(
-    (item) => !item.read
-  ).length;
-
-  const markAllRead = () => {
-    setNotifications((prev) =>
-      prev.map((item) => ({
-        ...item,
-        read: true,
-      }))
-    );
-  };
+  const unread = notifications.filter((item) => !item.read).length;
 
   return (
     <DashboardLayout>

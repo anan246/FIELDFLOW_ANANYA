@@ -46,7 +46,7 @@ export default function Login() {
         : "customer";
 
       const rawName = email.split("@")[0].split(".")[0];
-      const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      const name = role === "admin" ? "Ananya L S" : rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
       loggedInUser = {
         id: Date.now(),
@@ -59,6 +59,8 @@ export default function Login() {
         created_at: new Date().toISOString(),
       };
       token = "fieldflow_token_" + Date.now();
+    } else if (loggedInUser.role === "admin") {
+      loggedInUser.name = "Ananya L S";
     }
 
     localStorage.setItem("token", token);

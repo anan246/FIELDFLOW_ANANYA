@@ -38,13 +38,6 @@ function getCleanCustomerName(b, idx = 0) {
   if (typeof name === "string" && name.trim() !== "" && name.toLowerCase() !== "customer") {
     return name.trim();
   }
-  try {
-    const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (u.name && u.name.toLowerCase() !== "customer") {
-      return u.name.trim();
-    }
-  } catch (_) {}
-
   return DEFAULT_REALISTIC_CUSTOMERS[idx % DEFAULT_REALISTIC_CUSTOMERS.length];
 }
 
@@ -174,25 +167,19 @@ export default function BookingsPage() {
 
   useEffect(() => {
     fetchBookings();
-    const interval = setInterval(fetchBookings, 3000);
+    if (typeof window !== "undefined") {
+      const { getGlobalSearchQuery, subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      setSearch(getGlobalSearchQuery("admin"));
 
-    const handleSync = () => fetchBookings();
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("fieldflow_booking_created", handleSync);
-    window.addEventListener("fieldflow_customer_registered", handleSync);
-    window.addEventListener("fieldflow_job_assigned", handleSync);
-    window.addEventListener("fieldflow_job_status_change", handleSync);
+      const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+        fetchBookings();
+        if (type === "fieldflow_search_update" && (payload.role === "admin" || payload.role === "global")) {
+          setSearch(payload.query || "");
+        }
+      });
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("fieldflow_booking_created", handleSync);
-      window.removeEventListener("fieldflow_customer_registered", handleSync);
-      window.removeEventListener("fieldflow_job_assigned", handleSync);
-      window.removeEventListener("fieldflow_job_status_change", handleSync);
-    };
+      return () => unsubscribe();
+    }
   }, []);
 
   const fetchBookings = async () => {
@@ -356,11 +343,16 @@ export default function BookingsPage() {
   };
 
   const filtered = bookings.filter((b) => {
+    const q = search.toLowerCase().trim();
     const matchSearch =
-      b.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
-      b.service_category?.toLowerCase().includes(search.toLowerCase()) ||
-      b.technician_name?.toLowerCase().includes(search.toLowerCase()) ||
-      b.city?.toLowerCase().includes(search.toLowerCase());
+      !q ||
+      b.customer_name?.toLowerCase().includes(q) ||
+      b.service_category?.toLowerCase().includes(q) ||
+      b.technician_name?.toLowerCase().includes(q) ||
+      b.city?.toLowerCase().includes(q) ||
+      b.address?.toLowerCase().includes(q) ||
+      b.status?.toLowerCase().includes(q) ||
+      String(b.id || "").includes(q);
     const matchStatus = filterStatus === "all" || b.status === filterStatus;
     return matchSearch && matchStatus;
   });

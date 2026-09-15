@@ -50,6 +50,7 @@ export default function Sidebar({ isOpen, onClose }) {
       )}
 
       <aside
+        suppressHydrationWarning
         className={`fixed left-0 top-0 z-50 h-screen w-72 flex-col bg-[#08263B] text-white shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0 flex" : "-translate-x-full lg:translate-x-0 hidden lg:flex"
         }`}
@@ -68,6 +69,7 @@ export default function Sidebar({ isOpen, onClose }) {
           {onClose && (
             <button
               type="button"
+              suppressHydrationWarning
               onClick={onClose}
               className="lg:hidden rounded-lg p-1.5 text-slate-300 hover:bg-white/10"
             >
@@ -112,6 +114,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="border-t border-white/10 p-4">
           <button
             type="button"
+            suppressHydrationWarning
             onClick={logout}
             className="flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-gray-300 transition-all duration-200 hover:bg-red-500 hover:text-white cursor-pointer"
           >

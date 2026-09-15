@@ -49,8 +49,15 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (u?.role !== "admin") router.replace("/register");
-    setUser(u);
+    if (u?.role !== "admin") {
+      router.replace("/login");
+    } else {
+      const adminUser = { ...u, name: "Ananya L S", email: u.email || "ananya@fieldflow.com", role: "admin" };
+      setUser(adminUser);
+      try {
+        localStorage.setItem("user", JSON.stringify(adminUser));
+      } catch (_) {}
+    }
   }, []);
 
   useEffect(() => {
@@ -92,8 +99,8 @@ export default function AdminLayout({ children }) {
     setNotifs((prev) => prev.map((n) => ({ ...n, unread: false })));
   }
 
-  const userName = user?.name || "Admin";
-  const userInitial = userName.charAt(0).toUpperCase();
+  const userName = "Ananya L S";
+  const userInitial = "A";
 
   return (
     <div className="flex min-h-screen bg-[#F4F6FB] text-slate-800 font-sans">
@@ -195,22 +202,7 @@ export default function AdminLayout({ children }) {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Search */}
-          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-slate-200/80 rounded-xl px-4 py-2.5 flex-1 max-w-md ml-2 lg:ml-0">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search users, bookings, technicians..."
-              className="bg-transparent text-sm text-slate-800 outline-none w-full placeholder:text-slate-400"
-              suppressHydrationWarning
-            />
-            {search && (
-              <button onClick={() => setSearch("")}>
-                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
-              </button>
-            )}
-          </div>
+          <div className="flex-1" />
 
           <div className="flex items-center gap-3">
             {/* Mail Icon Button */}

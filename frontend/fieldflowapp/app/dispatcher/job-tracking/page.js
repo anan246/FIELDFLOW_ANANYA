@@ -49,14 +49,24 @@ export default function JobTrackingPage() {
 
   useEffect(() => {
     loadJobs();
-    const interval = setInterval(loadJobs, 3000);
-    window.addEventListener("focus", loadJobs);
-    window.addEventListener("storage", loadJobs);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", loadJobs);
-      window.removeEventListener("storage", loadJobs);
-    };
+    if (typeof window !== "undefined") {
+      const { getGlobalSearchQuery, subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      setSearch(getGlobalSearchQuery("dispatcher"));
+
+      const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+        loadJobs();
+        if (type === "fieldflow_search_update" && (payload.role === "dispatcher" || payload.role === "global")) {
+          setSearch(payload.query || "");
+        }
+      });
+
+      const interval = setInterval(loadJobs, 3000);
+
+      return () => {
+        clearInterval(interval);
+        unsubscribe();
+      };
+    }
   }, []);
 
   const loadJobs = async () => {
@@ -287,31 +297,17 @@ export default function JobTrackingPage() {
               </div>
             </div>
 
-            {/* Search */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-md border border-slate-100">
-              <div className="relative max-w-lg">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search booking, customer or technician..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 py-2.5 sm:py-3 pl-11 sm:pl-12 pr-4 text-xs sm:text-sm outline-none transition focus:border-[#08263B]"
-                />
-              </div>
-            </div>
-
             {/* Job List */}
             <div className="grid gap-4 sm:gap-6">
-              {filteredJobs.length === 0 ? (
+              {jobs.length === 0 ? (
                 <div className="rounded-3xl bg-white p-8 sm:p-10 text-center shadow-md">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-700">No Jobs Found</h2>
-                  <p className="mt-2 text-xs sm:text-sm text-gray-500">Try searching with another keyword.</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-700">No Tracked Jobs</h2>
+                  <p className="mt-2 text-xs sm:text-sm text-gray-500">No active assigned jobs in the tracking system yet.</p>
                 </div>
               ) : (
-                filteredJobs.map((job) => (
+                jobs.map((job, idx) => (
                   <div
-                    key={job.booking_id}
+                    key={`job-tracking-${job.booking_id || job.id || idx}-${idx}`}
                     className="rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-6 shadow-md transition hover:shadow-xl border border-slate-100"
                   >
                     <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">

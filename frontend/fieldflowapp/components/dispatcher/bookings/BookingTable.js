@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/apiConfig";
 import ViewBookingModal from "./ViewBookingModal";
 import AssignTechnicianModal from "./AssignTechnician";
+import ManualBookingModal from "./ManualBookingModal";
 
 import {
   Eye,
   MapPin,
   RefreshCw,
+  Plus,
 } from "lucide-react";
 
 const DEFAULT_REALISTIC_CUSTOMERS = [
@@ -27,13 +29,6 @@ function getCleanCustomerName(b, idx = 0) {
   if (typeof name === "string" && name.trim() !== "" && name.toLowerCase() !== "customer") {
     return name.trim();
   }
-  try {
-    const u = JSON.parse(localStorage.getItem("user") || "{}");
-    if (u.name && u.name.toLowerCase() !== "customer") {
-      return u.name.trim();
-    }
-  } catch (_) {}
-
   return DEFAULT_REALISTIC_CUSTOMERS[idx % DEFAULT_REALISTIC_CUSTOMERS.length];
 }
 
@@ -46,6 +41,8 @@ export default function BookingTable() {
 
   const [assignBooking, setAssignBooking] = useState(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+
+  const [isManualOpen, setIsManualOpen] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -72,27 +69,74 @@ export default function BookingTable() {
     try {
       let list = [];
 
-      // 1. Fetch from Dispatcher pending bookings API
+      // 1. Check most recent current booking from localStorage
+      try {
+        const currentBooking = JSON.parse(localStorage.getItem("fieldflow_current_booking") || "null");
+        if (currentBooking && currentBooking.id) {
+          list.unshift({
+            id: currentBooking.id,
+            customer: currentBooking.customerName || currentBooking.customer_name || "Customer",
+            service: currentBooking.service || currentBooking.service_name || "Home Service",
+            location: currentBooking.address || currentBooking.location || "Bengaluru",
+            phone: currentBooking.phone || "9876543210",
+            technician: currentBooking.technician || "Not Assigned",
+            status: currentBooking.status || "Pending",
+            priority: currentBooking.priority || "High",
+          });
+        }
+      } catch (_) {}
+
+      // 2. Merge local storage customer bookings created in frontend
+      try {
+        const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
+        const localFieldflowBookings = JSON.parse(localStorage.getItem("fieldflow_bookings") || "[]");
+        const allLocal = [...localCustomerBookings, ...localFieldflowBookings];
+
+        allLocal.forEach((cb, idx) => {
+          const cName = getCleanCustomerName(cb, idx);
+          const existingIdx = list.findIndex((b) => String(b.id) === String(cb.id || cb.bookingId));
+          if (existingIdx === -1) {
+            list.unshift({
+              id: cb.id || cb.bookingId || Math.floor(Math.random() * 8000) + 1000,
+              customer: cName,
+              service: cb.service || cb.service_name || "Home Service",
+              location: cb.address || cb.location || "Bengaluru",
+              phone: cb.phone || "9876543210",
+              technician: cb.technician || "Not Assigned",
+              status: cb.status || "Pending",
+              priority: cb.priority || "High",
+            });
+          } else {
+            list[existingIdx].customer = cName;
+          }
+        });
+      } catch (_) {}
+
+      // 3. Fetch from Dispatcher pending bookings API
       try {
         const response = await fetch(`${API_BASE_URL}/dispatcher/pending-bookings`);
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data) && data.length > 0) {
-            list = data.map((b, idx) => ({
-              id: b.id,
-              customer: getCleanCustomerName(b, idx),
-              service: b.service_name || "Home Service",
-              location: b.address || "Bengaluru",
-              phone: b.phone || "9876543210",
-              technician: b.technician_name || "Not Assigned",
-              status: b.status || "Pending",
-              priority: b.priority || "Normal",
-            }));
+            data.forEach((b, idx) => {
+              if (!list.some((existing) => String(existing.id) === String(b.id))) {
+                list.push({
+                  id: b.id,
+                  customer: getCleanCustomerName(b, idx),
+                  service: b.service_name || "Home Service",
+                  location: b.address || "Bengaluru",
+                  phone: b.phone || "9876543210",
+                  technician: b.technician_name || "Not Assigned",
+                  status: b.status || "Pending",
+                  priority: b.priority || "Normal",
+                });
+              }
+            });
           }
         }
       } catch (_) {}
 
-      // 2. Merge registered customers (e.g. Kripa)
+      // 4. Merge registered customers (e.g. Kripa)
       try {
         const allCustomers = JSON.parse(localStorage.getItem("allRegisteredCustomers") || "[]");
         allCustomers.forEach((cust, idx) => {
@@ -111,33 +155,7 @@ export default function BookingTable() {
         });
       } catch (_) {}
 
-      // 3. Merge local storage customer bookings created in frontend
-      try {
-        const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
-        const localFieldflowBookings = JSON.parse(localStorage.getItem("fieldflow_bookings") || "[]");
-        const allLocal = [...localCustomerBookings, ...localFieldflowBookings];
-
-        allLocal.forEach((cb, idx) => {
-          const cName = getCleanCustomerName(cb, idx);
-          const existingIdx = list.findIndex((b) => String(b.id) === String(cb.id || cb.bookingId));
-          if (existingIdx === -1) {
-            list.unshift({
-              id: cb.id || cb.bookingId || Math.floor(Math.random() * 8000) + 1000,
-              customer: cName,
-              service: cb.service || cb.service_name || "Home Service",
-              location: cb.address || cb.location || "Bengaluru",
-              phone: cb.phone || "9876543210",
-              technician: cb.technician || "Not Assigned",
-              status: cb.status || "Pending",
-              priority: "High",
-            });
-          } else {
-            list[existingIdx].customer = cName;
-          }
-        });
-      } catch (_) {}
-
-      // 4. Merge assigned jobs
+      // 5. Merge assigned jobs
       try {
         const assignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         list = list.map((b) => {
@@ -179,6 +197,47 @@ export default function BookingTable() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateManualBooking = (formData) => {
+    const newBooking = {
+      id: Math.floor(Math.random() * 8000) + 1000,
+      customerName: formData.customer,
+      customer_name: formData.customer,
+      customer: formData.customer,
+      phone: formData.phone || "9876543210",
+      service: formData.service || "Home Service",
+      service_name: formData.service || "Home Service",
+      location: formData.location || "Bengaluru",
+      address: formData.location || "Bengaluru",
+      city: formData.location || "Bengaluru",
+      priority: formData.priority || "Normal",
+      status: "Pending",
+      date: formData.date || "Today",
+      time: "10:00 AM",
+      notes: formData.notes || "",
+      created_at: new Date().toISOString(),
+    };
+
+    try {
+      const existingCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
+      localStorage.setItem("customer_bookings", JSON.stringify([newBooking, ...existingCustomerBookings]));
+    } catch (_) {}
+
+    try {
+      const existingFieldflowBookings = JSON.parse(localStorage.getItem("fieldflow_bookings") || "[]");
+      localStorage.setItem("fieldflow_bookings", JSON.stringify([newBooking, ...existingFieldflowBookings]));
+    } catch (_) {}
+
+    localStorage.setItem("fieldflow_current_booking", JSON.stringify(newBooking));
+
+    try {
+      window.dispatchEvent(new CustomEvent("fieldflow_booking_created", { detail: newBooking }));
+      window.dispatchEvent(new Event("storage"));
+    } catch (_) {}
+
+    fetchBookings();
+    alert(`Manual booking for ${formData.customer} created successfully! 🎉`);
   };
 
   const statusClasses = {
@@ -259,13 +318,22 @@ export default function BookingTable() {
           <h2 className="text-3xl font-bold">Dispatcher Bookings</h2>
           <p className="mt-2 text-gray-300 text-sm font-medium">Real-time service requests & technician assignment console</p>
         </div>
-        <button
-          type="button"
-          onClick={fetchBookings}
-          className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition self-start md:self-auto cursor-pointer"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Bookings
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsManualOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-xl text-xs font-bold text-white transition shadow-md cursor-pointer"
+          >
+            <Plus size={15} /> Create Manual Booking
+          </button>
+          <button
+            type="button"
+            onClick={fetchBookings}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition cursor-pointer"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Bookings
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -363,6 +431,12 @@ export default function BookingTable() {
         onAssign={(bookingId, technicianId, techName) => {
           assignTechnician(bookingId, technicianId, techName);
         }}
+      />
+
+      <ManualBookingModal
+        isOpen={isManualOpen}
+        onClose={() => setIsManualOpen(false)}
+        onCreateBooking={handleCreateManualBooking}
       />
     </div>
   );

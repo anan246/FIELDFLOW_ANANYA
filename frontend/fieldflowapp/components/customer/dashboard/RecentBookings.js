@@ -3,29 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Wrench } from "lucide-react";
+import { getGlobalSearchQuery, subscribeRealtimeEvents } from "@/lib/realtimeStore";
 
 export default function RecentBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchRecent();
-    const interval = setInterval(fetchRecent, 3000);
+    setSearch(getGlobalSearchQuery("customer"));
 
-    const handleSync = () => fetchRecent();
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("fieldflow_booking_created", handleSync);
-    window.addEventListener("fieldflow_job_assigned", handleSync);
-    window.addEventListener("fieldflow_job_status_change", handleSync);
+    const interval = setInterval(fetchRecent, 3000);
+    const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+      fetchRecent();
+      if (type === "fieldflow_search_update" && (payload.role === "customer" || payload.role === "global")) {
+        setSearch(payload.query || "");
+      }
+    });
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("fieldflow_booking_created", handleSync);
-      window.removeEventListener("fieldflow_job_assigned", handleSync);
-      window.removeEventListener("fieldflow_job_status_change", handleSync);
+      unsubscribe();
     };
   }, []);
 
@@ -72,13 +71,23 @@ export default function RecentBookings() {
         );
       }
 
-      setBookings(uniqueList.slice(0, 3));
+      setBookings(uniqueList);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredBookings = bookings.filter((b) => {
+    const q = search.toLowerCase();
+    return (
+      !q ||
+      (b.service || b.service_name || "").toLowerCase().includes(q) ||
+      (b.technician || "").toLowerCase().includes(q) ||
+      String(b.id).includes(q)
+    );
+  });
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -116,7 +125,7 @@ export default function RecentBookings() {
         {loading ? (
           <div className="p-6 text-center text-xs text-slate-500 font-medium">Loading recent bookings...</div>
         ) : (
-          bookings.map((booking, idx) => (
+          filteredBookings.slice(0, 5).map((booking, idx) => (
             <div
               key={`recent-booking-${booking.id || idx}-${idx}`}
               className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 transition hover:border-[#FF6B00]"
@@ -153,6 +162,10 @@ export default function RecentBookings() {
               </div>
             </div>
           ))
+        )}
+
+        {filteredBookings.length === 0 && !loading && (
+          <div className="p-6 text-center text-xs text-slate-500 font-medium">No bookings match query.</div>
         )}
       </div>
     </section>

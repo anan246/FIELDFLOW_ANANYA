@@ -109,21 +109,19 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
-    const interval = setInterval(fetchUsers, 3000);
+    if (typeof window !== "undefined") {
+      const { getGlobalSearchQuery, subscribeRealtimeEvents } = require("@/lib/realtimeStore");
+      setSearch(getGlobalSearchQuery("admin"));
 
-    const handleSync = () => fetchUsers();
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("fieldflow_customer_registered", handleSync);
-    window.addEventListener("fieldflow_technician_registered", handleSync);
+      const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+        fetchUsers();
+        if (type === "fieldflow_search_update" && (payload.role === "admin" || payload.role === "global")) {
+          setSearch(payload.query || "");
+        }
+      });
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("fieldflow_customer_registered", handleSync);
-      window.removeEventListener("fieldflow_technician_registered", handleSync);
-    };
+      return () => unsubscribe();
+    }
   }, []);
 
   const fetchUsers = async () => {
@@ -207,10 +205,15 @@ export default function UsersPage() {
   }
 
   const filtered = users.filter((u) => {
+    const q = search.toLowerCase().trim();
     const matchSearch =
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase()) ||
-      u.city?.toLowerCase().includes(search.toLowerCase());
+      !q ||
+      u.name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.phone?.toLowerCase().includes(q) ||
+      u.city?.toLowerCase().includes(q) ||
+      u.address?.toLowerCase().includes(q) ||
+      u.role?.toLowerCase().includes(q);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });

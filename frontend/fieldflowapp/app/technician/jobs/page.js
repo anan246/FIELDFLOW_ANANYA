@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MapPin, Clock, Wrench, CheckCircle, RefreshCw, User } from "lucide-react";
+import { MapPin, Clock, Wrench, CheckCircle, RefreshCw, User, Phone, Search, X } from "lucide-react";
 import { API_BASE_URL } from "@/lib/apiConfig";
+import { getGlobalSearchQuery, subscribeRealtimeEvents, updateJobStatus as updateStoreJobStatus } from "@/lib/realtimeStore";
 
 const MOCK_ASSIGNED_JOBS = [
   {
@@ -29,30 +30,30 @@ const MOCK_ASSIGNED_JOBS = [
 export default function JobsPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchAssignedJobs();
-    const interval = setInterval(fetchAssignedJobs, 3000);
+    setSearch(getGlobalSearchQuery("technician"));
 
-    const handleJobChange = () => fetchAssignedJobs();
-    window.addEventListener("storage", handleJobChange);
-    window.addEventListener("focus", handleJobChange);
-    window.addEventListener("fieldflow_job_assigned", handleJobChange);
-    window.addEventListener("fieldflow_job_status_change", handleJobChange);
+    const interval = setInterval(fetchAssignedJobs, 3000);
+    const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+      fetchAssignedJobs();
+      if (type === "fieldflow_search_update" && (payload.role === "technician" || payload.role === "global")) {
+        setSearch(payload.query || "");
+      }
+    });
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", handleJobChange);
-      window.removeEventListener("focus", handleJobChange);
-      window.removeEventListener("fieldflow_job_assigned", handleJobChange);
-      window.removeEventListener("fieldflow_job_status_change", handleJobChange);
+      unsubscribe();
     };
   }, []);
 
   const fetchAssignedJobs = async () => {
     try {
       const activeUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const techName = activeUser.name?.toLowerCase() || "";
+      const techName = activeUser.role === "technician" ? activeUser.name?.toLowerCase() || "" : "";
 
       let list = [];
       try {
@@ -98,7 +99,7 @@ export default function JobsPage() {
         } catch (_) {}
       }
 
-      // Merge local storage assigned jobs assigned by Dispatcher
+      // Merge local storage assigned jobs from Dispatcher
       try {
         const localAssigned = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         localAssigned.forEach((aj) => {
@@ -106,8 +107,8 @@ export default function JobsPage() {
           if (existingIdx === -1) {
             list.unshift({
               id: String(aj.bookingId),
-              customer: aj.customerName || "Customer",
-              service: aj.serviceName || "Service Request",
+              customer: aj.customerName || aj.customer || "Customer",
+              service: aj.serviceName || aj.service || "Service Request",
               location: aj.location || aj.address || "Bengaluru",
               time: "Today 10:00 AM",
               status: aj.status || "Assigned",
@@ -121,6 +122,44 @@ export default function JobsPage() {
         });
       } catch (_) {}
 
+      // Merge recent customer bookings stream directly into Technician list
+      try {
+        const currentBooking = JSON.parse(localStorage.getItem("fieldflow_current_booking") || "null");
+        if (currentBooking && currentBooking.id) {
+          const existingIdx = list.findIndex((j) => String(j.id) === String(currentBooking.id));
+          if (existingIdx === -1) {
+            list.unshift({
+              id: String(currentBooking.id),
+              customer: currentBooking.customerName || currentBooking.customer_name || "Customer",
+              service: currentBooking.service || currentBooking.service_name || "Home Repair",
+              location: currentBooking.address || "Bengaluru",
+              time: `${currentBooking.date || "Today"} ${currentBooking.time || "10:30 AM"}`,
+              status: currentBooking.status || "Pending",
+              phone: currentBooking.phone || "9876543210",
+              techName: currentBooking.technician || "",
+            });
+          }
+        }
+
+        const localCustomerBookings = JSON.parse(localStorage.getItem("customer_bookings") || "[]");
+        localCustomerBookings.forEach((cb) => {
+          const bId = String(cb.id || cb.bookingId);
+          const existingIdx = list.findIndex((j) => String(j.id) === bId);
+          if (existingIdx === -1) {
+            list.unshift({
+              id: bId,
+              customer: cb.customerName || cb.customer_name || "Customer",
+              service: cb.service || cb.service_name || "Home Repair",
+              location: cb.address || "Bengaluru",
+              time: `${cb.date || "Today"} ${cb.time || "10:30 AM"}`,
+              status: cb.status || "Pending",
+              phone: cb.phone || "9876543210",
+              techName: cb.technician || "",
+            });
+          }
+        });
+      } catch (_) {}
+
       // Filter by logged-in technician name if specific technician is logged in
       if (techName && techName !== "technician") {
         const filteredByTech = list.filter((j) => !j.techName || j.techName.toLowerCase().includes(techName));
@@ -129,7 +168,18 @@ export default function JobsPage() {
 
       if (list.length === 0) list = MOCK_ASSIGNED_JOBS;
 
-      setJobs(list);
+      // Deduplicate jobs by id
+      const uniqueJobs = [];
+      const seenIds = new Set();
+      list.forEach((j) => {
+        const jId = String(j.id);
+        if (!seenIds.has(jId)) {
+          seenIds.add(jId);
+          uniqueJobs.push(j);
+        }
+      });
+
+      setJobs(uniqueJobs);
     } catch (err) {
       console.error(err);
       setJobs(MOCK_ASSIGNED_JOBS);
@@ -139,20 +189,10 @@ export default function JobsPage() {
   };
 
   const updateStatus = async (jobId, newStatus) => {
+    updateStoreJobStatus(jobId, newStatus);
     setJobs((prev) =>
       prev.map((j) => (String(j.id) === String(jobId) ? { ...j, status: newStatus } : j))
     );
-
-    try {
-      const storedAssignments = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
-      const updated = storedAssignments.map((aj) =>
-        String(aj.bookingId) === String(jobId) ? { ...aj, status: newStatus } : aj
-      );
-      localStorage.setItem("assigned_jobs", JSON.stringify(updated));
-
-      window.dispatchEvent(new CustomEvent("fieldflow_job_status_change", { detail: { jobId, status: newStatus } }));
-      window.dispatchEvent(new Event("storage"));
-    } catch (_) {}
 
     try {
       const token = localStorage.getItem("token");
@@ -163,6 +203,18 @@ export default function JobsPage() {
       });
     } catch (_) {}
   };
+
+  const filteredJobs = jobs.filter((job) => {
+    const q = search.toLowerCase();
+    return (
+      (job.customer || "").toLowerCase().includes(q) ||
+      (job.service || "").toLowerCase().includes(q) ||
+      (job.location || "").toLowerCase().includes(q) ||
+      (job.phone || "").includes(q) ||
+      (job.status || "").toLowerCase().includes(q) ||
+      String(job.id).includes(q)
+    );
+  });
 
   const statusColors = {
     Assigned: "bg-orange-100 text-orange-700 border-orange-200",
@@ -178,13 +230,14 @@ export default function JobsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <Wrench className="text-orange-500" /> Assigned Jobs
+              <Wrench className="text-orange-500" /> Technician Jobs & Customer Service Requests
             </h1>
             <p className="text-slate-500 text-xs sm:text-sm mt-1">
-              Live job assignments received from Dispatchers in real time
+              Live customer service bookings received from Customers and Dispatchers in real time
             </p>
           </div>
           <button
+            type="button"
             onClick={fetchAssignedJobs}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-100 transition shadow-2xs self-start sm:self-auto cursor-pointer"
           >
@@ -194,14 +247,14 @@ export default function JobsPage() {
 
         {loading ? (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-500 font-semibold shadow-2xs">
-            Loading assigned jobs...
+            Loading customer jobs...
           </div>
         ) : (
           <div className="space-y-4">
-            {jobs.map((job) => (
+            {filteredJobs.map((job, idx) => (
               <div
-                key={job.id}
-                className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition hover:shadow-md"
+                key={`tech-job-${job.id || idx}-${idx}`}
+                className="bg-white rounded-2xl shadow-xs border border-slate-100 p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition hover:shadow-md"
               >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -224,6 +277,13 @@ export default function JobsPage() {
                     <span className="flex items-center gap-1.5">
                       <Clock size={15} className="text-blue-500 shrink-0" />
                       {job.time}
+                    </span>
+
+                    <span className="flex items-center gap-1.5">
+                      <Phone size={15} className="text-emerald-500 shrink-0" />
+                      <a href={`tel:${job.phone || '9876543210'}`} className="hover:underline text-emerald-700 font-bold">
+                        {job.phone || "9876543210"}
+                      </a>
                     </span>
                   </div>
                 </div>
@@ -257,6 +317,12 @@ export default function JobsPage() {
                 </div>
               </div>
             ))}
+
+            {filteredJobs.length === 0 && (
+              <div className="bg-white rounded-2xl p-8 text-center text-slate-500 font-semibold shadow-2xs">
+                No jobs found matching query.
+              </div>
+            )}
           </div>
         )}
       </div>

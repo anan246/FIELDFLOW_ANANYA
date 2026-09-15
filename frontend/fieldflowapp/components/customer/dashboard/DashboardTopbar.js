@@ -25,33 +25,20 @@ export default function DashboardTopbar() {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
+    <header suppressHydrationWarning className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
 
       <div className="flex h-[76px] items-center gap-4 px-4 sm:px-6 lg:px-8">
 
         {/* MOBILE MENU */}
         <button
           type="button"
+          suppressHydrationWarning
           className="rounded-xl border border-slate-200 p-2 text-slate-600 lg:hidden"
         >
           <Menu size={20} />
         </button>
 
-        {/* SEARCH */}
-        <div className="relative max-w-[560px] flex-1">
-
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Search services..."
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-[#FF6B00] focus:bg-white"
-          />
-
-        </div>
+        <div className="flex-1" />
 
         {/* RIGHT SIDE */}
         <div className="ml-auto flex items-center gap-2">
@@ -59,6 +46,7 @@ export default function DashboardTopbar() {
           {/* MAIL */}
           <button
             type="button"
+            suppressHydrationWarning
             className="relative hidden h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-[#FF6B00] hover:text-[#FF6B00] sm:flex"
           >
             <Mail size={18} />

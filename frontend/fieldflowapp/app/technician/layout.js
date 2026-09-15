@@ -40,7 +40,12 @@ export default function TechnicianLayout({ children }) {
     try {
       const stored = localStorage.getItem("user");
       if (stored) {
-        setUser(JSON.parse(stored));
+        const u = JSON.parse(stored);
+        if (u.role && u.role !== "technician") {
+          router.replace(`/${u.role}`);
+          return;
+        }
+        setUser(u);
       } else {
         setUser({ name: "Technician User", email: "tech@fieldflow.com", role: "technician" });
       }
@@ -172,13 +177,26 @@ export default function TechnicianLayout({ children }) {
             <Search className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearch(val);
+                if (typeof window !== "undefined") {
+                  const { setGlobalSearchQuery } = require("@/lib/realtimeStore");
+                  setGlobalSearchQuery(val, "technician");
+                }
+              }}
               placeholder="Search jobs, schedule, clients..."
               className="bg-transparent text-sm text-slate-800 outline-none w-full placeholder:text-slate-400"
               suppressHydrationWarning
             />
             {search && (
-              <button onClick={() => setSearch("")}>
+              <button onClick={() => {
+                setSearch("");
+                if (typeof window !== "undefined") {
+                  const { setGlobalSearchQuery } = require("@/lib/realtimeStore");
+                  setGlobalSearchQuery("", "technician");
+                }
+              }}>
                 <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
               </button>
             )}

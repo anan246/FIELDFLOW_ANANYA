@@ -14,8 +14,11 @@ import {
   Wrench,
   User,
   RefreshCw,
+  Search,
+  X,
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/apiConfig";
+import { getGlobalSearchQuery, subscribeRealtimeEvents } from "@/lib/realtimeStore";
 
 const filters = ["All", "Upcoming", "Completed", "Cancelled"];
 
@@ -23,25 +26,23 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchBookings();
-    const interval = setInterval(fetchBookings, 3000);
+    setSearch(getGlobalSearchQuery("customer"));
 
-    const handleSync = () => fetchBookings();
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("focus", handleSync);
-    window.addEventListener("fieldflow_booking_created", handleSync);
-    window.addEventListener("fieldflow_job_assigned", handleSync);
-    window.addEventListener("fieldflow_job_status_change", handleSync);
+    const interval = setInterval(fetchBookings, 3000);
+    const unsubscribe = subscribeRealtimeEvents((type, payload) => {
+      fetchBookings();
+      if (type === "fieldflow_search_update" && (payload.role === "customer" || payload.role === "global")) {
+        setSearch(payload.query || "");
+      }
+    });
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("focus", handleSync);
-      window.removeEventListener("fieldflow_booking_created", handleSync);
-      window.removeEventListener("fieldflow_job_assigned", handleSync);
-      window.removeEventListener("fieldflow_job_status_change", handleSync);
+      unsubscribe();
     };
   }, []);
 
@@ -49,27 +50,21 @@ export default function MyBookingsPage() {
     try {
       let list = [];
 
-      // 1. Fetch from Customer API endpoint
+      // 1. Check most recent current booking from localStorage
       try {
-        const u = JSON.parse(localStorage.getItem("user") || "{}");
-        const userId = u.id || 1;
-        const res = await fetch(`${API_BASE_URL}/bookings/customer/${userId}`);
-        if (res.ok) {
-          const data = await res.json();
-          const raw = data.bookings || (Array.isArray(data) ? data : []);
-          if (raw.length > 0) {
-            list = raw.map((b) => ({
-              id: b.id,
-              service: b.service_name || "Home Repair",
-              category: b.category_name || "Service",
-              price: b.service_price || 499,
-              date: b.booking_date ? String(b.booking_date).slice(0, 10) : "Today",
-              time: b.booking_time || "10:30 AM",
-              address: b.address || "Bengaluru",
-              status: formatStatus(b.status),
-              technician: b.technician_name || "Assigning...",
-            }));
-          }
+        const currentBooking = JSON.parse(localStorage.getItem("fieldflow_current_booking") || "null");
+        if (currentBooking && currentBooking.id) {
+          list.unshift({
+            id: currentBooking.id,
+            service: currentBooking.service || currentBooking.service_name || "Home Service",
+            category: currentBooking.category || "Service Request",
+            price: currentBooking.price || 499,
+            date: currentBooking.date || "Today",
+            time: currentBooking.time || "10:30 AM",
+            address: currentBooking.address || "Bengaluru",
+            status: formatStatus(currentBooking.status),
+            technician: currentBooking.technician || "Assigning...",
+          });
         }
       } catch (_) {}
 
@@ -91,19 +86,53 @@ export default function MyBookingsPage() {
               time: cb.time || "10:30 AM",
               address: cb.address || "Bengaluru",
               status: formatStatus(cb.status),
-              technician: cb.technician || "Assigning...",
+              technician: cb.technician || cb.technician_name || "Assigning...",
             });
+          } else {
+            list[existingIdx].status = formatStatus(cb.status || list[existingIdx].status);
+            if (cb.technician || cb.technician_name) {
+              list[existingIdx].technician = cb.technician || cb.technician_name;
+            }
           }
         });
       } catch (_) {}
 
-      // 3. Merge real-time assigned jobs from Dispatcher & Technician updates
+      // 3. Fetch from Customer API endpoint
+      try {
+        const u = JSON.parse(localStorage.getItem("user") || "{}");
+        const userId = u.id || 1;
+        const res = await fetch(`${API_BASE_URL}/bookings/customer/${userId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const raw = data.bookings || (Array.isArray(data) ? data : []);
+          if (raw.length > 0) {
+            raw.forEach((b) => {
+              const existingIdx = list.findIndex((item) => String(item.id) === String(b.id));
+              if (existingIdx === -1) {
+                list.push({
+                  id: b.id,
+                  service: b.service_name || "Home Repair",
+                  category: b.category_name || "Service",
+                  price: b.service_price || 499,
+                  date: b.booking_date ? String(b.booking_date).slice(0, 10) : "Today",
+                  time: b.booking_time || "10:30 AM",
+                  address: b.address || "Bengaluru",
+                  status: formatStatus(b.status),
+                  technician: b.technician_name || "Assigning...",
+                });
+              }
+            });
+          }
+        }
+      } catch (_) {}
+
+      // 4. Merge real-time assigned jobs from Dispatcher & Technician updates
       try {
         const assignedJobs = JSON.parse(localStorage.getItem("assigned_jobs") || "[]");
         assignedJobs.forEach((aj) => {
           const target = list.find((b) => String(b.id) === String(aj.bookingId));
           if (target) {
-            if (aj.techName) target.technician = aj.techName;
+            if (aj.techName || aj.technician_name) target.technician = aj.techName || aj.technician_name;
             if (aj.status) target.status = formatStatus(aj.status);
           } else {
             list.unshift({
@@ -115,13 +144,13 @@ export default function MyBookingsPage() {
               time: "10:00 AM",
               address: aj.location || aj.address || "Bengaluru",
               status: formatStatus(aj.status),
-              technician: aj.techName || "Assigned Technician",
+              technician: aj.techName || aj.technician_name || "Assigned Technician",
             });
           }
         });
       } catch (_) {}
 
-      // 4. Deduplicate list by id
+      // 5. Deduplicate list by id
       const uniqueList = [];
       const seenIds = new Set();
       list.forEach((b) => {
@@ -155,10 +184,20 @@ export default function MyBookingsPage() {
     return "Upcoming";
   }
 
-  const filteredBookings =
-    activeFilter === "All"
-      ? bookings
-      : bookings.filter((b) => b.status === activeFilter);
+  const filteredBookings = bookings.filter((b) => {
+    const matchesFilter = activeFilter === "All" || b.status === activeFilter;
+    const q = search.toLowerCase();
+    const matchesSearch =
+      !q ||
+      (b.service || "").toLowerCase().includes(q) ||
+      (b.category || "").toLowerCase().includes(q) ||
+      (b.address || "").toLowerCase().includes(q) ||
+      (b.technician || "").toLowerCase().includes(q) ||
+      String(b.id).includes(q);
+
+    return matchesFilter && matchesSearch;
+  });
+
 
   const totalBookings = bookings.length;
   const upcomingBookings = bookings.filter((b) => b.status === "Upcoming").length;
